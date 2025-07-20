@@ -20,6 +20,78 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    const resetButton = document.createElement('button');
+    resetButton.id = 'reset-button';
+    resetButton.textContent = 'Resetear Selección';
+    calculateButton.parentNode.insertBefore(resetButton, calculateButton.nextSibling);
+
+    function initializeSubjectControls() {
+        subjectChecklist.querySelectorAll('label').forEach(label => {
+            const originalContent = label.innerHTML;
+            label.innerHTML = '';
+            
+            const row = document.createElement('div');
+            row.className = 'subject-row';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.innerHTML = originalContent;
+            row.appendChild(contentDiv);
+            
+            const buttonsDiv = document.createElement('div');
+            buttonsDiv.className = 'subject-buttons';
+            
+            ['Aprobada', 'Final', 'Final (ignorar)'].forEach(status => {
+                const button = document.createElement('button');
+                button.textContent = status;
+                button.className = `status-button status-${status.toLowerCase().replace(' (ignorar)', '-ignorar')}`;
+                button.onclick = () => {
+                    row.className = 'subject-row subject-status-' + 
+                        status.toLowerCase().replace(' (ignorar)', '-ignorar');
+                    const checkbox = contentDiv.querySelector('input[type="checkbox"]');
+                    checkbox.checked = true;
+                    
+                    // Save status to localStorage
+                    const subjectId = checkbox.value;
+                    localStorage.setItem(`subject-status-${subjectId}`, status);
+                    
+                    // Trigger change event for checkbox
+                    const event = new Event('change');
+                    checkbox.dispatchEvent(event);
+                };
+                buttonsDiv.appendChild(button);
+            });
+            
+            row.appendChild(buttonsDiv);
+            label.appendChild(row);
+        });
+
+        // Restore statuses from localStorage
+        subjectChecklist.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            const status = localStorage.getItem(`subject-status-${checkbox.value}`);
+            if (status) {
+                const row = checkbox.closest('.subject-row');
+                row.className = 'subject-row subject-status-' + 
+                    status.toLowerCase().replace(' (ignorar)', '-ignorar');
+            }
+        });
+    }
+
+    resetButton.addEventListener('click', function() {
+        if (confirm('¿Estás seguro de que querés resetear todas las materias seleccionadas?')) {
+            localStorage.clear();
+            subjectChecklist.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+                const row = checkbox.closest('.subject-row');
+                if (row) {
+                    row.className = 'subject-row';
+                }
+            });
+        }
+    });
+
+    // Initialize subject controls
+    initializeSubjectControls();
+
     calculateButton.addEventListener('click', function() {
         const selectedSubjects = Array.from(subjectChecklist.querySelectorAll('input:checked'))
             .map(input => parseInt(input.value));
@@ -43,18 +115,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const materiasDisponibles = plan.puedoCursarEnCuatri(1);
 
             // Mostrar resultados
-            resultsDiv.innerHTML = '';
-            
-            // Display next semester subjects
-            //if (materias.materias_fijas && materias.materias_fijas.length > 0) { TEST
-            resultsDiv.innerHTML += '<h3>Materias para el próximo cuatrimestre:</h3>';
+            resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:</h3>';
             resultsDiv.innerHTML += '<p>Mientras más bajo el número en corchetes, más urgente es que curses una materia.</p>';
-            materias.materias_fijas.forEach(materia => {
-                resultsDiv.innerHTML += `<p>${materia}</p>`;
-            });
+            
+            if (materias.materias_fijas && materias.materias_fijas.length > 0) {
+                materias.materias_fijas.forEach(materia => {
+                    resultsDiv.innerHTML += `<p>${materia}</p>`;
+                });
+            }
 
             if (materias.materias_opcionales && materias.materias_opcionales.length > 0) {
-                resultsDiv.innerHTML += `<p><strong>Más ${materias.cantidad_a_elegir} de las siguientes materias, según tu preferencia:</strong></p>`;
+                const prefix = materias.materias_fijas.length > 0 ? 'Más ' : '';
+                resultsDiv.innerHTML += `<p><strong>${prefix}${materias.cantidad_a_elegir} de las siguientes materias, según tu preferencia:</strong></p>`;
                 materias.materias_opcionales.forEach(materia => {
                     resultsDiv.innerHTML += `<p>${materia}</p>`;
                 });

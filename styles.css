@@ -28,9 +28,9 @@ body.light-mode {
 }
 #completed-subjects label {
     display: block;
+    width: 100%;
     margin: 0;
     padding: 0;
-    width: 100%;
 }
 
 #completed-subjects input[type="checkbox"] {
@@ -53,21 +53,26 @@ button {
 }
 
 .subject-row {
-    display: block;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     width: 100%;
     margin: 0;
     padding: 5px 0;
     border-bottom: 1px solid #333;
     background: transparent;
 }
+.subject-row > div {
+    flex: 1 1 auto;
+}
 .subject-row > div, .subject-buttons {
     display: inline-block;
 }
 
 .subject-buttons {
-    margin-left: auto;
     display: flex;
-    gap: 5px;
+    flex-direction: row;
+    gap: 6px;
 }
 
 .status-button {
@@ -139,6 +144,10 @@ button {
 .status-button.status-final-ignorar, .status-button.status-final-ignorar:focus, .status-button.status-final-ignorar:active {
     background-color: #FF9800 !important;
     color: #fff !important;
+}
+.status-button.status-final, .status-button.status-final:focus, .status-button.status-final:active {
+    background-color: #FFD600 !important;
+    color: #222 !important;
 }
 
 #calculate-button {
@@ -225,4 +234,37 @@ body.light-mode #calculate-button:hover {
 #darkmode-toggle img {
     width: 32px;
     height: 32px;
+}
+
+/* Modo oscuro: colores de fondo de materias más oscuros */
+body.dark-mode .subject-status-aprobada {
+    background-color: #234d2c;
+}
+body.dark-mode .subject-status-final {
+    background-color: #FFD600;
+    color: #222;
+}
+body.dark-mode .subject-status-final-ignorar {
+    background-color: #FF9800 !important;
+    color: #fff !important;
+}
+body.dark-mode .subject-status-no-cursada {
+    background-color: #2a2222;
+    color: #fff;
+}
+
+body.light-mode .subject-status-aprobada {
+    background-color: #E8F5E9;
+}
+body.light-mode .subject-status-final {
+    background-color: #FFF8E1;
+    color: #222;
+}
+body.light-mode .subject-status-final-ignorar {
+    background-color: #FF9800 !important;
+    color: #fff !important;
+}
+body.light-mode .subject-status-no-cursada {
+    background-color: #FFEBEE;
+    color: #222;
 }

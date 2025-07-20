@@ -28,28 +28,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
         resultsDiv.innerHTML = '<p>Calculando...</p>';
 
-        fetch('/calculate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                completedSubjects: selectedSubjects,
-                subjectCount: subjectCount,
-                semester: semester
-            })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            resultsDiv.innerHTML = '';
-            const materias = data.materias;
-            const materiasDisponibles = data.materias_disponibles;
+        try {
+            // Crear nueva instancia del plan
+            const plan = new PlanDeEstudios();
+            
+            // Cargar datos
+            plan.cargarMateriasDesdeTexto(listado, selectedSubjects);
+            plan.cargarNombresDesdeTexto(tabla_nombres);
+            plan.calcularYGuardarLongitudes();
+            plan.ajustarCuatrimestre3671YPropagar(semester);
 
+            // Obtener resultados
+            const materias = plan.materiasProximoCuatri(subjectCount);
+            const materiasDisponibles = plan.puedoCursarEnCuatri(1);
+
+            // Mostrar resultados
+            resultsDiv.innerHTML = '';
+            
             // Display next semester subjects
             if (materias.materias_fijas && materias.materias_fijas.length > 0) {
                 resultsDiv.innerHTML += '<h3>Materias para el próximo cuatrimestre:</h3>';
@@ -78,10 +73,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!materias.materias_fijas?.length && !materias.materias_opcionales?.length) {
                 resultsDiv.innerHTML = '<p>No hay materias disponibles para cursar.</p>';
             }
-        })
-        .catch(error => {
+        } catch (error) {
             console.error('Error:', error);
-            resultsDiv.innerHTML = `<p class="error">Error al calcular las materias: ${error.message}. Chiflale a @flaitastic</p>`;
-        });
+            resultsDiv.innerHTML = `<p class="error">Error al calcular las materias: ${error.message}</p>`;
+        }
     });
 });

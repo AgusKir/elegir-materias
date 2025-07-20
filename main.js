@@ -41,12 +41,6 @@ document.addEventListener('DOMContentLoaded', function() {
         updateToggleIcon();
     });
 
-    // Load saved checkboxes
-    const savedSubjects = JSON.parse(localStorage.getItem('completedSubjects') || '[]');
-    subjectChecklist.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-        checkbox.checked = savedSubjects.includes(parseInt(checkbox.value));
-    });
-
     // Save checkboxes on change
     subjectChecklist.addEventListener('change', function(e) {
         if (e.target.type === 'checkbox') {

@@ -35,10 +35,11 @@ body.light-mode #completed-subjects {
     background: #fafafa;
 }
 #completed-subjects label {
-    display: block;
-    width: 100%;
+    display: block !important;
+    width: 100% !important;
     margin: 0;
     padding: 0;
+    /* No flex ni inline-block */
 }
 
 #completed-subjects input[type="checkbox"] {
@@ -69,6 +70,8 @@ button {
     padding: 5px 0;
     border-bottom: 1px solid #333;
     background: transparent;
+    flex-wrap: nowrap;
+    overflow-x: visible;
 }
 .subject-row > div:first-child {
     flex: 1 1 auto;

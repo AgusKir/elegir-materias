@@ -27,50 +27,79 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function initializeSubjectControls() {
         subjectChecklist.querySelectorAll('label').forEach(label => {
-            const subjectText = label.textContent;
+            // Obtener el checkbox y el texto
+            const checkbox = label.querySelector('input[type="checkbox"]');
+            const subjectText = label.textContent.trim();
             const id = subjectText.split('-')[0].trim();
+            // Limpiar el label
             label.innerHTML = '';
-            
+            // Volver a agregar el checkbox
+            label.appendChild(checkbox);
+
+            // Crear la fila visual
             const row = document.createElement('div');
-            row.className = 'subject-row subject-status-no-cursada';
-            
+            row.className = 'subject-row';
+
             const contentDiv = document.createElement('div');
             contentDiv.textContent = subjectText;
             row.appendChild(contentDiv);
-            
+
             const buttonsDiv = document.createElement('div');
             buttonsDiv.className = 'subject-buttons';
-            
-            ['No cursada', 'Aprobada', 'Final', 'Final (ignorar)'].forEach(status => {
+
+            [
+                { status: 'No cursada', check: false, className: 'subject-status-no-cursada' },
+                { status: 'Aprobada', check: true, className: 'subject-status-aprobada' },
+                { status: 'Final', check: true, className: 'subject-status-final' },
+                { status: 'Final (no me des correlativas)', check: true, className: 'subject-status-final-ignorar' }
+            ].forEach(({ status, check, className }) => {
                 const button = document.createElement('button');
                 button.textContent = status;
-                button.className = `status-button status-${status.toLowerCase().replace(' ', '-')}`;
+                button.type = 'button';
+                button.className = `status-button status-${status.toLowerCase().replace(/\s+/g, '-')}`;
                 button.onclick = (e) => {
-                    e.preventDefault(); // Prevent scrolling
-                    const statusClass = status.toLowerCase().replace(' ', '-');
-                    row.className = 'subject-row subject-status-' + statusClass;
-                    
-                    // Update localStorage
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Cambiar clase de color
+                    row.className = 'subject-row ' + className;
+                    // Guardar estado en localStorage
                     if (status === 'No cursada') {
                         localStorage.removeItem(`subject-status-${id}`);
+                        checkbox.checked = false;
                     } else {
                         localStorage.setItem(`subject-status-${id}`, status);
+                        checkbox.checked = true;
                     }
+                    // Actualizar checkboxes en localStorage
+                    const checked = Array.from(subjectChecklist.querySelectorAll('input[type="checkbox"]:checked'))
+                        .map(input => parseInt(input.value));
+                    localStorage.setItem('completedSubjects', JSON.stringify(checked));
                 };
                 buttonsDiv.appendChild(button);
             });
-            
+
             row.appendChild(buttonsDiv);
             label.appendChild(row);
         });
 
-        // Restore statuses from localStorage
-        subjectChecklist.querySelectorAll('.subject-row').forEach(row => {
-            const id = row.querySelector('div').textContent.split('-')[0].trim();
+        // Restaurar colores desde localStorage
+        subjectChecklist.querySelectorAll('label').forEach(label => {
+            const checkbox = label.querySelector('input[type="checkbox"]');
+            const subjectText = label.textContent.trim();
+            const id = subjectText.split('-')[0].trim();
+            const row = label.querySelector('.subject-row');
             const status = localStorage.getItem(`subject-status-${id}`);
-            if (status) {
-                row.className = 'subject-row subject-status-' + 
-                    status.toLowerCase().replace(' ', '-');
+            if (row) {
+                if (status) {
+                    let className = '';
+                    if (status === 'Aprobada') className = 'subject-status-aprobada';
+                    else if (status === 'Final') className = 'subject-status-final';
+                    else if (status === 'Final (no me des correlativas)') className = 'subject-status-final-ignorar';
+                    else className = 'subject-status-no-cursada';
+                    row.className = 'subject-row ' + className;
+                } else {
+                    row.className = 'subject-row subject-status-no-cursada';
+                }
             }
         });
     }

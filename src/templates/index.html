@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patear Materias</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Elegí las materias que aprobaste hasta ahora</h1>
+        <form id="subject-form">
+            <div id="completed-subjects">
+                <h2>Materias Completadas</h2>
+                <label><input type="checkbox" name="subject" value="3621"> Matemática Discreta</label><br>
+                <label><input type="checkbox" name="subject" value="3622"> Análisis Matemático I</label><br>
+                <label><input type="checkbox" name="subject" value="3623"> Programación Inicial</label><br>
+                <label><input type="checkbox" name="subject" value="3624"> Introducción a los Sistemas de Información</label><br>
+                <label><input type="checkbox" name="subject" value="3625"> Sistemas de Numeración</label><br>
+                <label><input type="checkbox" name="subject" value="3626"> Principios de Calidad de Software</label><br>
+                <label><input type="checkbox" name="subject" value="3627"> Álgebra Y Geometría Analítica I</label><br>
+                <label><input type="checkbox" name="subject" value="3628"> Física I</label><br>
+                <label><input type="checkbox" name="subject" value="3629"> Programación Estructurada Básica</label><br>
+                <label><input type="checkbox" name="subject" value="3630"> Introducción a la Gestión de Requisitos</label><br>
+                <label><input type="checkbox" name="subject" value="3631"> Fundamentos de Sistemas Embebidos</label><br>
+                <label><input type="checkbox" name="subject" value="3632"> Introducción a los Proyectos Informáticos</label><br>
+                <label><input type="checkbox" name="subject" value="3633"> Análisis Matemático II</label><br>
+                <label><input type="checkbox" name="subject" value="3634"> Física II</label><br>
+                <label><input type="checkbox" name="subject" value="3635"> Tópicos de Programación</label><br>
+                <label><input type="checkbox" name="subject" value="3636"> Bases de Datos</label><br>
+                <label><input type="checkbox" name="subject" value="3637"> Análisis de Sistemas</label><br>
+                <label><input type="checkbox" name="subject" value="3638"> Arquitectura de Computadoras</label><br>
+                <label><input type="checkbox" name="subject" value="3639"> Análisis Matemático III</label><br>
+                <label><input type="checkbox" name="subject" value="3640"> Algoritmos y Estructuras de Datos</label><br>
+                <label><input type="checkbox" name="subject" value="3641"> Bases de Datos Aplicadas</label><br>
+                <label><input type="checkbox" name="subject" value="3642"> Principios de Diseño de Sistemas</label><br>
+                <label><input type="checkbox" name="subject" value="3643"> Redes de Computadoras</label><br>
+                <label><input type="checkbox" name="subject" value="3644"> Gestión de las Organizaciones</label><br>
+                <label><input type="checkbox" name="subject" value="3676"> Responsabilidad Social Universitaria</label><br>
+                <label><input type="checkbox" name="subject" value="3645"> Álgebra y Geometría Analítica II</label><br>
+                <label><input type="checkbox" name="subject" value="3646"> Paradigmas de Programación</label><br>
+                <label><input type="checkbox" name="subject" value="3647"> Requisitos Avanzados</label><br>
+                <label><input type="checkbox" name="subject" value="3648"> Diseño de Software</label><br>
+                <label><input type="checkbox" name="subject" value="3649"> Sistemas Operativos</label><br>
+                <label><input type="checkbox" name="subject" value="3650"> Seguridad de la Información</label><br>
+                <label><input type="checkbox" name="subject" value="3675"> Práctica Profesional Supervisada</label><br>
+                <label><input type="checkbox" name="subject" value="3651"> Probabilidad y Estadística</label><br>
+                <label><input type="checkbox" name="subject" value="3652"> Programación Avanzada</label><br>
+                <label><input type="checkbox" name="subject" value="3653"> Arquitectura de Sistemas Software</label><br>
+                <label><input type="checkbox" name="subject" value="3654"> Virtualización de Hardware</label><br>
+                <label><input type="checkbox" name="subject" value="3655"> Auditoría y Legislación</label><br>
+                <label><input type="checkbox" name="subject" value="3656"> Estadística Aplicada</label><br>
+                <label><input type="checkbox" name="subject" value="3657"> Autómatas y Gramáticas</label><br>
+                <label><input type="checkbox" name="subject" value="3658"> Programación Concurrente</label><br>
+                <label><input type="checkbox" name="subject" value="3659"> Gestión Aplicada al Desarrollo de Software I</label><br>
+                <label><input type="checkbox" name="subject" value="3660"> Sistemas Operativos Avanzados</label><br>
+                <label><input type="checkbox" name="subject" value="3661"> Gestión de Proyectos</label><br>
+                <label><input type="checkbox" name="subject" value="3662"> Matemática Aplicada</label><br>
+                <label><input type="checkbox" name="subject" value="3663"> Lenguajes y Compiladores</label><br>
+                <label><input type="checkbox" name="subject" value="3664"> Inteligencia Artificial</label><br>
+                <label><input type="checkbox" name="subject" value="3665"> Gestión Aplicada al Desarrollo de Software II</label><br>
+                <label><input type="checkbox" name="subject" value="3666"> Seguridad Aplicada y Forensia</label><br>
+                <label><input type="checkbox" name="subject" value="3667"> Gestión de la Calidad en Procesos de Sistemas</label><br>
+                <label><input type="checkbox" name="subject" value="3668"> Inteligencia Artificial Aplicada</label><br>
+                <label><input type="checkbox" name="subject" value="3669"> Innovación y Emprendedorismo</label><br>
+                <label><input type="checkbox" name="subject" value="3670"> Ciencia de Datos</label><br>
+                <label><input type="checkbox" name="subject" value="3671"> Proyecto Final de Carrera</label><br>
+                <label><input type="checkbox" name="subject" value="3677"> Lenguaje Orientado a Negocios</label><br>
+                <label><input type="checkbox" name="subject" value="3678"> Tecnologías en Seguridad</label><br>
+                <label><input type="checkbox" name="subject" value="3679"> Visión Artificial</label><br>
+                <label><input type="checkbox" name="subject" value="3680"> Taller de Integración</label><br>
+                <label><input type="checkbox" name="subject" value="911"> Computación I</label><br>
+                <label><input type="checkbox" name="subject" value="912"> Computación II</label><br>
+                <label><input type="checkbox" name="subject" value="901"> Inglés I</label><br>
+                <label><input type="checkbox" name="subject" value="902"> Inglés II</label><br>
+                <label><input type="checkbox" name="subject" value="903"> Inglés III</label><br>
+                <label><input type="checkbox" name="subject" value="904"> Inglés IV</label><br>
+            </div>
+            <div>
+                <label for="num-subjects">¿A cuántas materias te querés anotar?</label>
+                <select id="num-subjects" name="num-subjects">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                </select>
+            </div>
+            <div>
+                <label for="semester">¿Para qué cuatrimestre te vas a anotar?</label>
+                <select id="semester" name="semester">
+                    <option value="1">Primero</option>
+                    <option value="2">Segundo</option>
+                    <option value="2">Verano</option>
+                </select>
+            </div>
+            <button type="button" id="calculate-button">Calcular</button>
+        </form>
+        <div id="results"></div>
+    </div>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>

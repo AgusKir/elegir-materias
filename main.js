@@ -111,6 +111,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             row.appendChild(buttonsDiv);
             label.appendChild(row);
+            label.style.display = 'block';
+            label.style.width = '100%';
+            row.style.width = '100%';
         });
 
         // Restaurar colores y checkboxes desde localStorage

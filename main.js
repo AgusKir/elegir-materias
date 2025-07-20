@@ -50,15 +50,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Botones: Aprobada, Final, Final (ignorar), No cursada (No cursada al final)
             [
-                { status: 'Aprobada', check: true, className: 'subject-status-aprobada', btnClass: 'status-aprobada' },
-                { status: 'Final', check: true, className: 'subject-status-final', btnClass: 'status-final' },
-                { status: 'Final (ignorar)', check: true, className: 'subject-status-final-ignorar', btnClass: 'status-final-ignorar' },
-                { status: 'No cursada', check: false, className: 'subject-status-no-cursada', btnClass: 'status-no-cursada' }
+                { status: 'Aprobada', check: true, className: 'subject-status-aprobada', btnClass: 'status-button status-aprobada' },
+                { status: 'Final', check: true, className: 'subject-status-final', btnClass: 'status-button status-final' },
+                { status: 'Final (ignorar)', check: true, className: 'subject-status-final-ignorar', btnClass: 'status-button status-final-ignorar' },
+                { status: 'No cursada', check: false, className: 'subject-status-no-cursada', btnClass: 'status-button status-no-cursada' }
             ].forEach(({ status, check, className, btnClass }) => {
                 const button = document.createElement('button');
                 button.textContent = status;
                 button.type = 'button';
-                button.className = `status-button ${btnClass}`;
+                button.className = btnClass;
                 button.onclick = (e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 resultsDiv.innerHTML += '<h3>Todas las materias que podrías cursar:</h3>';
                 resultsDiv.innerHTML += '<p>Mientras más bajo el número en corchetes, más urgente es que curses una materia.</p>';
                 materiasDisponibles.forEach(materia => {
-                    resultsDiv.innerHTML += `<p>${materia}</p>`;
+                    resultsDiv.innerHTML += `<p> ${materia}</p>`;
                 });
             }
 

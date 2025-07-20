@@ -9,6 +9,15 @@ body {
     margin: 0 auto;
 }
 
+body.dark-mode {
+    background: #181a1b;
+    color: #f1f1f1;
+}
+body.light-mode {
+    background: #fff;
+    color: #222;
+}
+
 #completed-subjects {
     max-height: 400px;
     overflow-y: auto;
@@ -45,10 +54,14 @@ button {
 
 .subject-row {
     display: block;
+    width: 100%;
     margin: 0;
     padding: 5px 0;
-    border-bottom: 1px solid #f0f0f0;
-    transition: background-color 0.3s ease;
+    border-bottom: 1px solid #333;
+    background: transparent;
+}
+.subject-row > div, .subject-buttons {
+    display: inline-block;
 }
 
 .subject-buttons {
@@ -140,4 +153,76 @@ button {
 }
 #calculate-button:hover {
     background-color: #1565c0;
+}
+
+body.dark-mode .subject-row {
+    border-bottom: 1px solid #333;
+}
+body.dark-mode .status-button {
+    color: #fff;
+}
+body.dark-mode .status-aprobada {
+    background-color: #388e3c;
+}
+body.dark-mode .status-final {
+    background-color: #ffa000;
+    color: #222;
+}
+body.dark-mode .status-final-ignorar {
+    background-color: #FF9800 !important;
+    color: #fff !important;
+}
+body.dark-mode .status-no-cursada {
+    background-color: #b71c1c;
+}
+body.dark-mode #calculate-button {
+    background-color: #1976d2;
+    color: #fff;
+}
+body.dark-mode #calculate-button:hover {
+    background-color: #1565c0;
+}
+
+body.light-mode .subject-row {
+    border-bottom: 1px solid #eee;
+}
+body.light-mode .status-aprobada {
+    background-color: #4CAF50;
+    color: #fff;
+}
+body.light-mode .status-final {
+    background-color: #FFC107;
+    color: #222;
+}
+body.light-mode .status-final-ignorar {
+    background-color: #FF9800 !important;
+    color: #fff !important;
+}
+body.light-mode .status-no-cursada {
+    background-color: #f44336;
+    color: #fff;
+}
+body.light-mode #calculate-button {
+    background-color: #1976d2;
+    color: #fff;
+}
+body.light-mode #calculate-button:hover {
+    background-color: #1565c0;
+}
+
+/* Toggle button */
+#darkmode-toggle {
+    position: absolute;
+    top: 24px;
+    right: 32px;
+    z-index: 10;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    color: inherit;
+}
+#darkmode-toggle img {
+    width: 32px;
+    height: 32px;
 }

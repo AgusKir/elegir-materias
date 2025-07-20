@@ -5,6 +5,30 @@ document.addEventListener('DOMContentLoaded', function() {
     const semesterDropdown = document.getElementById('semester');
     const resultsDiv = document.getElementById('results');
 
+    // Modo oscuro/light toggle
+    const body = document.body;
+    const darkToggle = document.getElementById('darkmode-toggle');
+    // Inicializar modo según localStorage o default oscuro
+    const savedMode = localStorage.getItem('colorMode');
+    if (savedMode === 'light') {
+        body.classList.remove('dark-mode');
+        body.classList.add('light-mode');
+    } else {
+        body.classList.add('dark-mode');
+        body.classList.remove('light-mode');
+    }
+    darkToggle.addEventListener('click', function() {
+        if (body.classList.contains('dark-mode')) {
+            body.classList.remove('dark-mode');
+            body.classList.add('light-mode');
+            localStorage.setItem('colorMode', 'light');
+        } else {
+            body.classList.remove('light-mode');
+            body.classList.add('dark-mode');
+            localStorage.setItem('colorMode', 'dark');
+        }
+    });
+
     // Load saved checkboxes
     const savedSubjects = JSON.parse(localStorage.getItem('completedSubjects') || '[]');
     subjectChecklist.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {

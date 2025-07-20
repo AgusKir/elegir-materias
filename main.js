@@ -226,23 +226,28 @@ document.addEventListener('DOMContentLoaded', function() {
             const materias = planFiltrado.materiasProximoCuatri(subjectCount);
             const materiasDisponibles = planFiltrado.puedoCursarEnCuatri(1);
 
-            // Mostrar resultados
+            // Función robusta para extraer el ID de una materia string
+            function getMateriaId(materiaStr) {
+                const match = materiaStr.match(/^(\d+)[^\d]/);
+                return match ? parseInt(match[1]) : null;
+            }
             // Filtrar y loggear resultados
             const materiasFijasFiltradas = (materias.materias_fijas || []).filter(materia => {
-                const id = parseInt(materia.split('-')[0]);
-                return !ignorarIds.includes(id);
+                const id = getMateriaId(materia);
+                return id !== null && !ignorarIds.includes(id);
             });
             const materiasOpcFiltradas = (materias.materias_opcionales || []).filter(materia => {
-                const id = parseInt(materia.split('-')[0]);
-                return !ignorarIds.includes(id);
+                const id = getMateriaId(materia);
+                return id !== null && !ignorarIds.includes(id);
             });
             const materiasDisponiblesFiltradas = (materiasDisponibles || []).filter(materia => {
-                const id = parseInt(materia.split('-')[0]);
-                return !ignorarIds.includes(id);
+                const id = getMateriaId(materia);
+                return id !== null && !ignorarIds.includes(id);
             });
             console.log('Materias fijas filtradas:', materiasFijasFiltradas);
             console.log('Materias opcionales filtradas:', materiasOpcFiltradas);
             console.log('Materias disponibles filtradas:', materiasDisponiblesFiltradas);
+            // Mostrar resultados
             resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:</h3>';
             if (materiasFijasFiltradas.length > 0) {
                 materiasFijasFiltradas.forEach(materia => {

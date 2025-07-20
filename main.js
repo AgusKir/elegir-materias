@@ -27,36 +27,35 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function initializeSubjectControls() {
         subjectChecklist.querySelectorAll('label').forEach(label => {
-            const originalContent = label.innerHTML;
+            const subjectText = label.textContent;
+            const id = subjectText.split('-')[0].trim();
             label.innerHTML = '';
             
             const row = document.createElement('div');
-            row.className = 'subject-row';
+            row.className = 'subject-row subject-status-no-cursada';
             
             const contentDiv = document.createElement('div');
-            contentDiv.innerHTML = originalContent;
+            contentDiv.textContent = subjectText;
             row.appendChild(contentDiv);
             
             const buttonsDiv = document.createElement('div');
             buttonsDiv.className = 'subject-buttons';
             
-            ['Aprobada', 'Final', 'Final (ignorar)'].forEach(status => {
+            ['No cursada', 'Aprobada', 'Final', 'Final (ignorar)'].forEach(status => {
                 const button = document.createElement('button');
                 button.textContent = status;
-                button.className = `status-button status-${status.toLowerCase().replace(' (ignorar)', '-ignorar')}`;
-                button.onclick = () => {
-                    row.className = 'subject-row subject-status-' + 
-                        status.toLowerCase().replace(' (ignorar)', '-ignorar');
-                    const checkbox = contentDiv.querySelector('input[type="checkbox"]');
-                    checkbox.checked = true;
+                button.className = `status-button status-${status.toLowerCase().replace(' ', '-')}`;
+                button.onclick = (e) => {
+                    e.preventDefault(); // Prevent scrolling
+                    const statusClass = status.toLowerCase().replace(' ', '-');
+                    row.className = 'subject-row subject-status-' + statusClass;
                     
-                    // Save status to localStorage
-                    const subjectId = checkbox.value;
-                    localStorage.setItem(`subject-status-${subjectId}`, status);
-                    
-                    // Trigger change event for checkbox
-                    const event = new Event('change');
-                    checkbox.dispatchEvent(event);
+                    // Update localStorage
+                    if (status === 'No cursada') {
+                        localStorage.removeItem(`subject-status-${id}`);
+                    } else {
+                        localStorage.setItem(`subject-status-${id}`, status);
+                    }
                 };
                 buttonsDiv.appendChild(button);
             });
@@ -66,12 +65,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Restore statuses from localStorage
-        subjectChecklist.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-            const status = localStorage.getItem(`subject-status-${checkbox.value}`);
+        subjectChecklist.querySelectorAll('.subject-row').forEach(row => {
+            const id = row.querySelector('div').textContent.split('-')[0].trim();
+            const status = localStorage.getItem(`subject-status-${id}`);
             if (status) {
-                const row = checkbox.closest('.subject-row');
                 row.className = 'subject-row subject-status-' + 
-                    status.toLowerCase().replace(' (ignorar)', '-ignorar');
+                    status.toLowerCase().replace(' ', '-');
             }
         });
     }

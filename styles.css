@@ -23,13 +23,14 @@ body.light-mode {
     display: block !important;
     width: 100% !important;
     max-width: 100%;
-    border: 1px solid #333;
+    border: 1px solid #333 !important;
     border-radius: 10px;
     background: #232323;
     padding: 16px;
     margin: 16px 0;
     max-height: 400px;
     overflow-y: auto;
+    box-shadow: none !important;
 }
 body.light-mode #completed-subjects {
     border: 1px solid #ccc;
@@ -271,8 +272,8 @@ body.light-mode .subject-status-final {
     color: #222;
 }
 body.light-mode .subject-status-final-ignorar {
-    background-color: #FF9800 !important;
-    color: #fff !important;
+    background-color: #ffe0b2;
+    color: #222;
 }
 body.light-mode .subject-status-no-cursada {
     background-color: #FFEBEE;

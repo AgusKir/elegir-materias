@@ -39,8 +39,9 @@ button {
 .subject-row {
     display: flex;
     align-items: center;
-    margin: 5px 0;
-    padding: 5px;
+    margin: 0;
+    padding: 5px 0;
+    border-bottom: 1px solid #f0f0f0;
     transition: background-color 0.3s ease;
 }
 
@@ -69,6 +70,7 @@ button {
 
 .status-final-ignorar {
     background-color: #FF9800;
+    color: white;
 }
 
 .status-no-cursada {
@@ -98,4 +100,19 @@ button {
     color: white;
     border: none;
     border-radius: 4px;
+}
+
+/* Alinear label y select horizontalmente */
+#subject-form > div {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+#subject-form label[for] {
+    min-width: 320px;
+    margin-bottom: 0;
+}
+#subject-form select {
+    margin-left: 12px;
+    min-width: 120px;
 }

@@ -21,6 +21,18 @@ body.light-mode {
 #completed-subjects {
     display: block;
     width: 100%;
+    max-width: 100%;
+    border: 1px solid #333;
+    border-radius: 10px;
+    background: #232323;
+    padding: 16px;
+    margin: 16px 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+body.light-mode #completed-subjects {
+    border: 1px solid #ccc;
+    background: #fafafa;
 }
 #completed-subjects label {
     display: block;

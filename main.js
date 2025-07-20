@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const id = subjectText.split('-')[0].trim();
             // Limpiar el label
             label.innerHTML = '';
-            // Volver a agregar el checkbox (pero oculto)
+            // Volver a agregar el checkbox (oculto)
             checkbox.style.display = 'none';
             label.appendChild(checkbox);
 
@@ -84,7 +84,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const buttonsDiv = document.createElement('div');
             buttonsDiv.className = 'subject-buttons';
 
-            // Botones: Aprobada, Final, Final (ignorar), No cursada (No cursada al final)
             [
                 { status: 'Aprobada', check: true, className: 'subject-status-aprobada', btnClass: 'status-button status-aprobada' },
                 { status: 'Final', check: true, className: 'subject-status-final', btnClass: 'status-button status-final' },
@@ -120,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
             label.appendChild(row);
         });
 
-        // Restaurar colores desde localStorage
+        // Restaurar colores y checkboxes desde localStorage
         subjectChecklist.querySelectorAll('label').forEach(label => {
             const checkbox = label.querySelector('input[type="checkbox"]');
             const subjectText = label.textContent.trim();
@@ -128,15 +127,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const row = label.querySelector('.subject-row');
             const status = localStorage.getItem(`subject-status-${id}`);
             if (row) {
-                if (status) {
-                    let className = '';
-                    if (status === 'Aprobada') className = 'subject-status-aprobada';
-                    else if (status === 'Final') className = 'subject-status-final';
-                    else if (status === 'Final (ignorar)') className = 'subject-status-final-ignorar';
-                    else className = 'subject-status-no-cursada';
-                    row.className = 'subject-row ' + className;
+                if (status === 'Aprobada') {
+                    row.className = 'subject-row subject-status-aprobada';
+                    checkbox.checked = true;
+                } else if (status === 'Final') {
+                    row.className = 'subject-row subject-status-final';
+                    checkbox.checked = true;
+                } else if (status === 'Final (ignorar)') {
+                    row.className = 'subject-row subject-status-final-ignorar';
+                    checkbox.checked = true;
                 } else {
                     row.className = 'subject-row subject-status-no-cursada';
+                    checkbox.checked = false;
                 }
             }
         });

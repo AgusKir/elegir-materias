@@ -7,6 +7,7 @@ body {
 .container {
     max-width: 800px;
     margin: 0 auto;
+    display: block !important;
 }
 
 body.dark-mode {
@@ -19,8 +20,8 @@ body.light-mode {
 }
 
 #completed-subjects {
-    display: block;
-    width: 100%;
+    display: block !important;
+    width: 100% !important;
     max-width: 100%;
     border: 1px solid #333;
     border-radius: 10px;
@@ -322,9 +323,14 @@ body.light-mode .footer-btn:hover {
 }
 
 .subject-label {
-    display: block;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    clear: both !important;
+}
+form#subject-form {
+    display: block !important;
 }

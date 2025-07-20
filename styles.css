@@ -25,6 +25,7 @@ body.light-mode {
     padding: 10px;
     margin: 10px 0;
     display: block;
+    width: 100%;
 }
 #completed-subjects label {
     display: block;
@@ -64,11 +65,8 @@ button {
 }
 .subject-row > div {
     flex: 1 1 auto;
+    display: block;
 }
-.subject-row > div, .subject-buttons {
-    display: inline-block;
-}
-
 .subject-buttons {
     display: flex;
     flex-direction: row;
@@ -236,16 +234,16 @@ body.light-mode #calculate-button:hover {
     height: 32px;
 }
 
-/* Modo oscuro: colores de fondo de materias más oscuros */
+/* Modo oscuro: colores de fondo de materias más oscuros y apagados */
 body.dark-mode .subject-status-aprobada {
     background-color: #234d2c;
 }
 body.dark-mode .subject-status-final {
-    background-color: #FFD600;
-    color: #222;
+    background-color: #665c1e;
+    color: #fff;
 }
 body.dark-mode .subject-status-final-ignorar {
-    background-color: #FF9800 !important;
+    background-color: #7a4a13 !important;
     color: #fff !important;
 }
 body.dark-mode .subject-status-no-cursada {

@@ -8,8 +8,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Modo oscuro/light toggle
     const body = document.body;
     const darkToggle = document.getElementById('darkmode-toggle');
+    const darkToggleImg = darkToggle.querySelector('img');
     // Inicializar modo según localStorage o default oscuro
     const savedMode = localStorage.getItem('colorMode');
+    function updateToggleIcon() {
+        if (body.classList.contains('dark-mode')) {
+            darkToggleImg.src = 'assets/light-mode-toggle-icon.svg';
+            darkToggleImg.alt = 'Cambiar a modo claro';
+        } else {
+            darkToggleImg.src = 'assets/dark-mode-toggle-icon.svg';
+            darkToggleImg.alt = 'Cambiar a modo oscuro';
+        }
+    }
     if (savedMode === 'light') {
         body.classList.remove('dark-mode');
         body.classList.add('light-mode');
@@ -17,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
         body.classList.add('dark-mode');
         body.classList.remove('light-mode');
     }
+    updateToggleIcon();
     darkToggle.addEventListener('click', function() {
         if (body.classList.contains('dark-mode')) {
             body.classList.remove('dark-mode');
@@ -27,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
             body.classList.add('dark-mode');
             localStorage.setItem('colorMode', 'dark');
         }
+        updateToggleIcon();
     });
 
     // Load saved checkboxes

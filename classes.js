@@ -213,12 +213,12 @@ class PlanDeEstudios {
     cargarNombresDesdeTexto(texto) {
         texto.trim().split('\n').forEach(linea => {
             if (!linea.trim()) return;
-            const partes = linea.trim().split(/\s+(.+)/);
-            if (partes.length === 2) {
-                const idMateria = parseInt(partes[0]);
-                const nombre = partes[1].trim();
+            // Match any whitespace (tabs or spaces) between the ID and name
+            const [_, id, nombre] = linea.trim().match(/^(\d+)\s+(.+)$/);
+            if (id && nombre) {
+                const idMateria = parseInt(id);
                 if (this.materias[idMateria]) {
-                    this.materias[idMateria].nombre = nombre;
+                    this.materias[idMateria].nombre = nombre.trim();
                 }
             }
         });

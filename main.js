@@ -13,10 +13,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const savedMode = localStorage.getItem('colorMode');
     function updateToggleIcon() {
         if (body.classList.contains('dark-mode')) {
-            darkToggleImg.src = 'assets/light-mode-toggle-icon.svg';
+            darkToggleImg.src = 'assets/dark-mode-toggle-icon.svg';
             darkToggleImg.alt = 'Cambiar a modo claro';
         } else {
-            darkToggleImg.src = 'assets/dark-mode-toggle-icon.svg';
+            darkToggleImg.src = 'assets/light-mode-toggle-icon.svg';
             darkToggleImg.alt = 'Cambiar a modo oscuro';
         }
     }

@@ -228,9 +228,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Función robusta para extraer el ID de una materia string
             function getMateriaId(materiaStr) {
-                const match = materiaStr.match(/^(\d+)[^\d]/);
-                return match ? parseInt(match[1]) : null;
+                const match = materiaStr.match(/\d+/);
+                return match ? parseInt(match[0]) : null;
             }
+            // Log de debug para ver los IDs extraídos
+            (materias.materias_fijas || []).forEach(materia => {
+                const id = getMateriaId(materia);
+                console.log('Materia:', materia, 'ID extraído:', id);
+            });
             // Filtrar y loggear resultados
             const materiasFijasFiltradas = (materias.materias_fijas || []).filter(materia => {
                 const id = getMateriaId(materia);

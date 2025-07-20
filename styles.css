@@ -15,6 +15,12 @@ body {
     border: 1px solid #ccc;
     padding: 10px;
     margin: 10px 0;
+    display: block;
+}
+#completed-subjects label {
+    display: block;
+    margin: 0;
+    padding: 0;
 }
 
 #completed-subjects input[type="checkbox"] {
@@ -39,6 +45,7 @@ button {
 .subject-row {
     display: flex;
     align-items: center;
+    flex-direction: row;
     margin: 0;
     padding: 5px 0;
     border-bottom: 1px solid #f0f0f0;
@@ -115,4 +122,23 @@ button {
 #subject-form select {
     margin-left: 12px;
     min-width: 120px;
+}
+
+.status-final-ignorar, .status-final-ignorar:focus, .status-final-ignorar:active {
+    background-color: #FF9800 !important;
+    color: white !important;
+}
+
+#calculate-button {
+    border-radius: 4px;
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+#calculate-button:hover {
+    background-color: #1565c0;
 }

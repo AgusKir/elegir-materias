@@ -50,15 +50,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Botones: Aprobada, Final, Final (ignorar), No cursada (No cursada al final)
             [
-                { status: 'Aprobada', check: true, className: 'subject-status-aprobada' },
-                { status: 'Final', check: true, className: 'subject-status-final' },
-                { status: 'Final (ignorar)', check: true, className: 'subject-status-final-ignorar' },
-                { status: 'No cursada', check: false, className: 'subject-status-no-cursada' }
-            ].forEach(({ status, check, className }) => {
+                { status: 'Aprobada', check: true, className: 'subject-status-aprobada', btnClass: 'status-aprobada' },
+                { status: 'Final', check: true, className: 'subject-status-final', btnClass: 'status-final' },
+                { status: 'Final (ignorar)', check: true, className: 'subject-status-final-ignorar', btnClass: 'status-final-ignorar' },
+                { status: 'No cursada', check: false, className: 'subject-status-no-cursada', btnClass: 'status-no-cursada' }
+            ].forEach(({ status, check, className, btnClass }) => {
                 const button = document.createElement('button');
                 button.textContent = status;
                 button.type = 'button';
-                button.className = `status-button status-${status.toLowerCase().replace(/\s+/g, '-')}`;
+                button.className = `status-button ${btnClass}`;
                 button.onclick = (e) => {
                     e.preventDefault();
                     e.stopPropagation();

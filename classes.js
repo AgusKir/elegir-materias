@@ -304,7 +304,7 @@ class PlanDeEstudios {
         return materiasEnCuatri
             .sort((a, b) => a[1] - b[1])
             .map(([id_materia, valor_corchete]) => 
-                `[${valor_corchete}] ${this.materias[id_materia].nombre}(${id_materia})`);
+                `[${valor_corchete}] ${this.materias[id_materia].nombre} (${id_materia})`);
     }
 }
 

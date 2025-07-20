@@ -158,37 +158,79 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeSubjectControls();
 
     calculateButton.addEventListener('click', function() {
+        // Obtener materias seleccionadas (Aprobada o Final)
         const selectedSubjects = Array.from(subjectChecklist.querySelectorAll('input:checked'))
             .map(input => parseInt(input.value));
         const subjectCount = parseInt(subjectCountDropdown.value);
         const semester = parseInt(semesterDropdown.value);
+
+        // Obtener materias marcadas como 'Final (ignorar)'
+        const finalIgnorarIds = [];
+        subjectChecklist.querySelectorAll('.subject-label').forEach(subjectDiv => {
+            const checkbox = subjectDiv.querySelector('input[type="checkbox"]');
+            const subjectText = subjectDiv.textContent.trim();
+            const id = parseInt(subjectText.split(')')[0].replace('(', '').trim());
+            const status = localStorage.getItem(`subject-status-${id}`);
+            if (status === 'Final (ignorar)') {
+                finalIgnorarIds.push(id);
+            }
+        });
+
+        // Función para obtener todas las correlativas siguientes recursivamente
+        function getAllPosteriores(ids, plan) {
+            const toRemove = new Set(ids);
+            const stack = [...ids];
+            while (stack.length > 0) {
+                const current = stack.pop();
+                const materia = plan.materias[current];
+                if (materia) {
+                    materia.posteriores.forEach(postId => {
+                        if (!toRemove.has(postId)) {
+                            toRemove.add(postId);
+                            stack.push(postId);
+                        }
+                    });
+                }
+            }
+            return Array.from(toRemove);
+        }
 
         resultsDiv.innerHTML = '<p>Calculando...</p>';
 
         try {
             // Crear nueva instancia del plan
             const plan = new PlanDeEstudios();
-            
-            // Cargar datos
-            plan.cargarMateriasDesdeTexto(listado, selectedSubjects);
+            // Cargar datos (sin eliminar nada aún)
+            plan.cargarMateriasDesdeTexto(listado, []);
             plan.cargarNombresDesdeTexto(tabla_nombres);
             plan.calcularYGuardarLongitudes();
             plan.ajustarCuatrimestre3671YPropagar(semester);
 
+            // Obtener todas las materias a ignorar (final ignorar + sus posteriores)
+            const ignorarIds = getAllPosteriores(finalIgnorarIds, plan);
+
+            // Filtrar las materias seleccionadas para excluir las ignoradas
+            const filteredSelected = selectedSubjects.filter(id => !ignorarIds.includes(id));
+
+            // Crear nuevo plan solo con las materias válidas
+            const planFiltrado = new PlanDeEstudios();
+            planFiltrado.cargarMateriasDesdeTexto(listado, filteredSelected);
+            planFiltrado.cargarNombresDesdeTexto(tabla_nombres);
+            planFiltrado.calcularYGuardarLongitudes();
+            planFiltrado.ajustarCuatrimestre3671YPropagar(semester);
+
             // Obtener resultados
-            const materias = plan.materiasProximoCuatri(subjectCount);
-            const materiasDisponibles = plan.puedoCursarEnCuatri(1);
+            const materias = planFiltrado.materiasProximoCuatri(subjectCount);
+            const materiasDisponibles = planFiltrado.puedoCursarEnCuatri(1);
 
             // Mostrar resultados
             resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:</h3>';
             //resultsDiv.innerHTML += '<p>Mientras más bajo el número en corchetes, más urgente es que curses una materia.</p>';
-            
             if (materias.materias_fijas && materias.materias_fijas.length > 0) {
                 materias.materias_fijas.forEach(materia => {
                     resultsDiv.innerHTML += `<p>${materia}</p>`;
                 });
             }
-
             if (materias.materias_opcionales && materias.materias_opcionales.length > 0) {
                 const prefix = materias.materias_fijas.length > 0 ? 'Más ' : '';
                 resultsDiv.innerHTML += `<p><strong>${prefix}${materias.cantidad_a_elegir} de las siguientes materias, según tu preferencia:</strong></p>`;
@@ -196,7 +238,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     resultsDiv.innerHTML += `<p>${materia}</p>`;
                 });
             }
-
             // Agregar espacio visual antes de la siguiente sección
             resultsDiv.innerHTML += '<div style="height: 32px"></div>';
             // Display available subjects
@@ -207,7 +248,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     resultsDiv.innerHTML += `<p> ${materia}</p>`;
                 });
             }
-
             if (!materias.materias_fijas?.length && !materias.materias_opcionales?.length) {
                 resultsDiv.innerHTML = '<p>No hay materias disponibles para cursar.</p>';
             }

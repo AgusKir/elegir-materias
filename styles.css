@@ -23,7 +23,7 @@ body.light-mode {
     display: block !important;
     width: 100% !important;
     max-width: 100%;
-    border: 1px solid #333 !important;
+    border: none !important;
     border-radius: 10px;
     background: #232323;
     padding: 16px;
@@ -33,7 +33,7 @@ body.light-mode {
     box-shadow: none !important;
 }
 body.light-mode #completed-subjects {
-    border: 1px solid #ccc;
+    border: none !important;
     background: #fafafa;
 }
 #completed-subjects label {

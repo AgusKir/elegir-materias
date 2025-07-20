@@ -210,6 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Obtener todas las materias a ignorar (final ignorar + sus posteriores)
             const ignorarIds = getAllPosteriores(finalIgnorarIds, plan);
+            console.log('Materias ignoradas (Final ignorar + correlativas):', ignorarIds);
 
             // Filtrar las materias seleccionadas para excluir las ignoradas
             const filteredSelected = selectedSubjects.filter(id => !ignorarIds.includes(id));
@@ -226,40 +227,44 @@ document.addEventListener('DOMContentLoaded', function() {
             const materiasDisponibles = planFiltrado.puedoCursarEnCuatri(1);
 
             // Mostrar resultados
+            // Filtrar y loggear resultados
+            const materiasFijasFiltradas = (materias.materias_fijas || []).filter(materia => {
+                const id = parseInt(materia.split('-')[0]);
+                return !ignorarIds.includes(id);
+            });
+            const materiasOpcFiltradas = (materias.materias_opcionales || []).filter(materia => {
+                const id = parseInt(materia.split('-')[0]);
+                return !ignorarIds.includes(id);
+            });
+            const materiasDisponiblesFiltradas = (materiasDisponibles || []).filter(materia => {
+                const id = parseInt(materia.split('-')[0]);
+                return !ignorarIds.includes(id);
+            });
+            console.log('Materias fijas filtradas:', materiasFijasFiltradas);
+            console.log('Materias opcionales filtradas:', materiasOpcFiltradas);
+            console.log('Materias disponibles filtradas:', materiasDisponiblesFiltradas);
             resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:</h3>';
-            //resultsDiv.innerHTML += '<p>Mientras más bajo el número en corchetes, más urgente es que curses una materia.</p>';
-            if (materias.materias_fijas && materias.materias_fijas.length > 0) {
-                materias.materias_fijas.filter(materia => {
-                    const id = parseInt(materia.split('-')[0]);
-                    return !ignorarIds.includes(id);
-                }).forEach(materia => {
+            if (materiasFijasFiltradas.length > 0) {
+                materiasFijasFiltradas.forEach(materia => {
                     resultsDiv.innerHTML += `<p>${materia}</p>`;
                 });
             }
-            if (materias.materias_opcionales && materias.materias_opcionales.length > 0) {
-                const prefix = materias.materias_fijas.length > 0 ? 'Más ' : '';
+            if (materiasOpcFiltradas.length > 0) {
+                const prefix = materiasFijasFiltradas.length > 0 ? 'Más ' : '';
                 resultsDiv.innerHTML += `<p><strong>${prefix}${materias.cantidad_a_elegir} de las siguientes materias, según tu preferencia:</strong></p>`;
-                materias.materias_opcionales.filter(materia => {
-                    const id = parseInt(materia.split('-')[0]);
-                    return !ignorarIds.includes(id);
-                }).forEach(materia => {
+                materiasOpcFiltradas.forEach(materia => {
                     resultsDiv.innerHTML += `<p>${materia}</p>`;
                 });
             }
-            // Agregar espacio visual antes de la siguiente sección
             resultsDiv.innerHTML += '<div style="height: 32px"></div>';
-            // Display available subjects
-            if (materiasDisponibles && materiasDisponibles.length > 0) {
+            if (materiasDisponiblesFiltradas.length > 0) {
                 resultsDiv.innerHTML += '<h3>Todas las materias que podrías cursar:</h3>';
                 resultsDiv.innerHTML += '<p>Mientras más bajo el número en corchetes, más urgente es que curses una materia.</p>';
-                materiasDisponibles.filter(materia => {
-                    const id = parseInt(materia.split('-')[0]);
-                    return !ignorarIds.includes(id);
-                }).forEach(materia => {
+                materiasDisponiblesFiltradas.forEach(materia => {
                     resultsDiv.innerHTML += `<p> ${materia}</p>`;
                 });
             }
-            if (!materias.materias_fijas?.length && !materias.materias_opcionales?.length) {
+            if (materiasFijasFiltradas.length === 0 && materiasOpcFiltradas.length === 0) {
                 resultsDiv.innerHTML = '<p>No hay materias disponibles para cursar.</p>';
             }
         } catch (error) {

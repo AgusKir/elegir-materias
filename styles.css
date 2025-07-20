@@ -337,3 +337,9 @@ body.light-mode .footer-btn:hover {
 form#subject-form {
     display: block !important;
 }
+
+#completed-subjects, .container, form#subject-form, #completed-subjects h2 {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}

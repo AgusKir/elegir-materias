@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     checkbox.checked = true;
                 } else if (status === 'Final (ignorar)') {
                     row.className = 'subject-row subject-status-final-ignorar';
-                    checkbox.checked = true;
+                    checkbox.checked = false;
                 } else {
                     row.className = 'subject-row subject-status-no-cursada';
                     checkbox.checked = false;
@@ -190,6 +190,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             stack.push(postId);
                         }
                     });
+                } else {
+                    toRemove.add(current);
                 }
             }
             return Array.from(toRemove);
@@ -227,14 +229,20 @@ document.addEventListener('DOMContentLoaded', function() {
             resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:</h3>';
             //resultsDiv.innerHTML += '<p>Mientras más bajo el número en corchetes, más urgente es que curses una materia.</p>';
             if (materias.materias_fijas && materias.materias_fijas.length > 0) {
-                materias.materias_fijas.forEach(materia => {
+                materias.materias_fijas.filter(materia => {
+                    const id = parseInt(materia.split('-')[0]);
+                    return !ignorarIds.includes(id);
+                }).forEach(materia => {
                     resultsDiv.innerHTML += `<p>${materia}</p>`;
                 });
             }
             if (materias.materias_opcionales && materias.materias_opcionales.length > 0) {
                 const prefix = materias.materias_fijas.length > 0 ? 'Más ' : '';
                 resultsDiv.innerHTML += `<p><strong>${prefix}${materias.cantidad_a_elegir} de las siguientes materias, según tu preferencia:</strong></p>`;
-                materias.materias_opcionales.forEach(materia => {
+                materias.materias_opcionales.filter(materia => {
+                    const id = parseInt(materia.split('-')[0]);
+                    return !ignorarIds.includes(id);
+                }).forEach(materia => {
                     resultsDiv.innerHTML += `<p>${materia}</p>`;
                 });
             }
@@ -244,7 +252,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (materiasDisponibles && materiasDisponibles.length > 0) {
                 resultsDiv.innerHTML += '<h3>Todas las materias que podrías cursar:</h3>';
                 resultsDiv.innerHTML += '<p>Mientras más bajo el número en corchetes, más urgente es que curses una materia.</p>';
-                materiasDisponibles.forEach(materia => {
+                materiasDisponibles.filter(materia => {
+                    const id = parseInt(materia.split('-')[0]);
+                    return !ignorarIds.includes(id);
+                }).forEach(materia => {
                     resultsDiv.innerHTML += `<p> ${materia}</p>`;
                 });
             }

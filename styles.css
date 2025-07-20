@@ -24,16 +24,18 @@ body.light-mode {
     width: 100% !important;
     max-width: 100%;
     border: none !important;
-    border-radius: 10px;
+    border-radius: 0 !important;
+    box-shadow: none !important;
     background: #232323;
     padding: 16px;
     margin: 16px 0;
     max-height: 400px;
     overflow-y: auto;
-    box-shadow: none !important;
 }
 body.light-mode #completed-subjects {
     border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
     background: #fafafa;
 }
 #completed-subjects label {

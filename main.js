@@ -47,13 +47,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Display next semester subjects
             //if (materias.materias_fijas && materias.materias_fijas.length > 0) { TEST
-            if (1) {
-                resultsDiv.innerHTML += '<h3>Materias para el próximo cuatrimestre:</h3>';
-                resultsDiv.innerHTML += '<p>Mientras más bajo el número en corchetes, más urgente es que curses una materia.</p>';
-                materias.materias_fijas.forEach(materia => {
-                    resultsDiv.innerHTML += `<p>${materia}</p>`;
-                });
-            }
+            resultsDiv.innerHTML += '<h3>Materias para el próximo cuatrimestre:</h3>';
+            resultsDiv.innerHTML += '<p>Mientras más bajo el número en corchetes, más urgente es que curses una materia.</p>';
+            materias.materias_fijas.forEach(materia => {
+                resultsDiv.innerHTML += `<p>${materia}</p>`;
+            });
 
             if (materias.materias_opcionales && materias.materias_opcionales.length > 0) {
                 resultsDiv.innerHTML += `<p><strong>Más ${materias.cantidad_a_elegir} de las siguientes materias, según tu preferencia:</strong></p>`;

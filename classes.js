@@ -289,7 +289,7 @@ class PlanDeEstudios {
     agregarMateriasAlResultado(lista, materias) {
         materias.forEach(([id_materia, valor_corchete]) => {
             const nombre = this.materias[id_materia].nombre;
-            lista.push(`${id_materia}- ${nombre} [${valor_corchete}]`);
+            lista.push(`[${valor_corchete}] ${nombre} (${id_materia})`);
         });
     }
 
@@ -304,7 +304,7 @@ class PlanDeEstudios {
         return materiasEnCuatri
             .sort((a, b) => a[1] - b[1])
             .map(([id_materia, valor_corchete]) => 
-                `${id_materia}- ${this.materias[id_materia].nombre} [${valor_corchete}]`);
+                `[${valor_corchete}] ${this.materias[id_materia].nombre}(${id_materia})`);
     }
 }
 

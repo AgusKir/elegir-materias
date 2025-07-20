@@ -33,7 +33,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const id = subjectText.split('-')[0].trim();
             // Limpiar el label
             label.innerHTML = '';
-            // Volver a agregar el checkbox
+            // Volver a agregar el checkbox (pero oculto)
+            checkbox.style.display = 'none';
             label.appendChild(checkbox);
 
             // Crear la fila visual
@@ -47,11 +48,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const buttonsDiv = document.createElement('div');
             buttonsDiv.className = 'subject-buttons';
 
+            // Botones: Aprobada, Final, Final (ignorar), No cursada (No cursada al final)
             [
-                { status: 'No cursada', check: false, className: 'subject-status-no-cursada' },
                 { status: 'Aprobada', check: true, className: 'subject-status-aprobada' },
                 { status: 'Final', check: true, className: 'subject-status-final' },
-                { status: 'Final (no me des correlativas)', check: true, className: 'subject-status-final-ignorar' }
+                { status: 'Final (ignorar)', check: true, className: 'subject-status-final-ignorar' },
+                { status: 'No cursada', check: false, className: 'subject-status-no-cursada' }
             ].forEach(({ status, check, className }) => {
                 const button = document.createElement('button');
                 button.textContent = status;
@@ -94,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     let className = '';
                     if (status === 'Aprobada') className = 'subject-status-aprobada';
                     else if (status === 'Final') className = 'subject-status-final';
-                    else if (status === 'Final (no me des correlativas)') className = 'subject-status-final-ignorar';
+                    else if (status === 'Final (ignorar)') className = 'subject-status-final-ignorar';
                     else className = 'subject-status-no-cursada';
                     row.className = 'subject-row ' + className;
                 } else {
@@ -144,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Mostrar resultados
             resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:</h3>';
-            resultsDiv.innerHTML += '<p>Mientras más bajo el número en corchetes, más urgente es que curses una materia.</p>';
+            //resultsDiv.innerHTML += '<p>Mientras más bajo el número en corchetes, más urgente es que curses una materia.</p>';
             
             if (materias.materias_fijas && materias.materias_fijas.length > 0) {
                 materias.materias_fijas.forEach(materia => {
@@ -160,6 +162,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
 
+            // Agregar espacio visual antes de la siguiente sección
+            resultsDiv.innerHTML += '<div style="height: 32px"></div>';
             // Display available subjects
             if (materiasDisponibles && materiasDisponibles.length > 0) {
                 resultsDiv.innerHTML += '<h3>Todas las materias que podrías cursar:</h3>';

@@ -17,6 +17,10 @@ body {
     margin: 10px 0;
 }
 
+#completed-subjects input[type="checkbox"] {
+    display: none;
+}
+
 label {
     display: block;
     margin: 5px 0;

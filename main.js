@@ -56,16 +56,16 @@ document.addEventListener('DOMContentLoaded', function() {
     calculateButton.parentNode.insertBefore(resetButton, calculateButton.nextSibling);
 
     function initializeSubjectControls() {
-        subjectChecklist.querySelectorAll('label').forEach(label => {
+        subjectChecklist.querySelectorAll('.subject-label').forEach(subjectDiv => {
             // Obtener el checkbox y el texto
-            const checkbox = label.querySelector('input[type="checkbox"]');
-            const subjectText = label.textContent.trim();
-            const id = subjectText.split('-')[0].trim();
-            // Limpiar el label
-            label.innerHTML = '';
+            const checkbox = subjectDiv.querySelector('input[type="checkbox"]');
+            const subjectText = subjectDiv.textContent.trim();
+            const id = subjectText.split(')')[0].replace('(', '').trim();
+            // Limpiar el div
+            subjectDiv.innerHTML = '';
             // Volver a agregar el checkbox (oculto)
             checkbox.style.display = 'none';
-            label.appendChild(checkbox);
+            subjectDiv.appendChild(checkbox);
 
             // Crear la fila visual
             const row = document.createElement('div');
@@ -110,18 +110,18 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             row.appendChild(buttonsDiv);
-            label.appendChild(row);
-            label.style.display = 'block';
-            label.style.width = '100%';
+            subjectDiv.appendChild(row);
+            subjectDiv.style.display = 'block';
+            subjectDiv.style.width = '100%';
             row.style.width = '100%';
         });
 
         // Restaurar colores y checkboxes desde localStorage
-        subjectChecklist.querySelectorAll('label').forEach(label => {
-            const checkbox = label.querySelector('input[type="checkbox"]');
-            const subjectText = label.textContent.trim();
-            const id = subjectText.split('-')[0].trim();
-            const row = label.querySelector('.subject-row');
+        subjectChecklist.querySelectorAll('.subject-label').forEach(subjectDiv => {
+            const checkbox = subjectDiv.querySelector('input[type="checkbox"]');
+            const subjectText = subjectDiv.textContent.trim();
+            const id = subjectText.split(')')[0].replace('(', '').trim();
+            const row = subjectDiv.querySelector('.subject-row');
             const status = localStorage.getItem(`subject-status-${id}`);
             if (row) {
                 if (status === 'Aprobada') {

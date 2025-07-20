@@ -320,3 +320,11 @@ body.light-mode .footer-btn:hover {
     background: #444;
     color: #fff;
 }
+
+.subject-label {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}

@@ -50,10 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    const resetButton = document.createElement('button');
-    resetButton.id = 'reset-button';
-    resetButton.textContent = 'Resetear Selección';
-    calculateButton.parentNode.insertBefore(resetButton, calculateButton.nextSibling);
+    const resetButton = document.getElementById('reset-button');
 
     function initializeSubjectControls() {
         subjectChecklist.querySelectorAll('.subject-label').forEach(subjectDiv => {
@@ -151,6 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     row.className = 'subject-row';
                 }
             });
+            initializeSubjectControls();
         }
     });
 

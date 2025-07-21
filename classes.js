@@ -381,7 +381,7 @@ const tabla_nombres = `
 3624	Introducción a los Sistemas de Información
 3625	Sistemas de Numeración
 3626	Principios de Calidad de Software
-3627	Álgebra Y Geometría Analítica I
+3627	Álgebra y Geometría Analítica I
 3628	Física I
 3629	Programación Estructurada Básica
 3630	Introducción a la Gestión de Requisitos

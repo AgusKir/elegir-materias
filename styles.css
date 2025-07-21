@@ -8,6 +8,7 @@ body {
     max-width: 1050px;
     margin: 0 auto;
     display: block !important;
+    position: relative;
 }
 
 .container h1 {
@@ -246,7 +247,7 @@ body.light-mode #calculate-button:hover {
 #darkmode-toggle {
     position: absolute;
     top: 24px;
-    left: 32px;
+    left: 24px;
     right: auto;
     z-index: 10;
     background: none;

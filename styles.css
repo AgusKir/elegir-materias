@@ -148,6 +148,7 @@ button {
     color: white;
     border: none;
     border-radius: 4px;
+    cursor: pointer;
 }
 
 /* Alinear label y select horizontalmente */
@@ -401,4 +402,13 @@ form#subject-form {
     gap: 16px;
     margin-top: 18px;
     margin-bottom: 0;
+}
+#results {
+    display: block;
+    width: 100%;
+}
+#results p, #results h3, #results div {
+    display: block;
+    width: 100%;
+    margin: 0 0 8px 0;
 }

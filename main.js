@@ -176,6 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const idsCuarto = Array.from({length: 3667-3656+1}, (_,i)=>3656+i);
     const idsTransversales = [901,902,903,904,911,912];
     const idsTaller = [3680];
+    const idsQuinto = [3668, 3669, 3670, 3671, 3677, 3678, 3679];
     // Elementos
     const quickPrimero = document.getElementById('quick-primero');
     const quickSegundo = document.getElementById('quick-segundo');
@@ -183,6 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const quickCuarto = document.getElementById('quick-cuarto');
     const quickTransversales = document.getElementById('quick-transversales');
     const quickTaller = document.getElementById('quick-taller');
+    const quickQuinto = document.getElementById('quick-quinto');
     // Handlers
     quickPrimero.addEventListener('change', function() {
         setMateriasEstado(idsPrimero, this.checked ? 'Aprobada' : 'No cursada');
@@ -202,12 +204,16 @@ document.addEventListener('DOMContentLoaded', function() {
     quickTaller.addEventListener('change', function() {
         setMateriasEstado(idsTaller, this.checked ? 'Aprobada' : 'No cursada');
     });
+    quickQuinto.addEventListener('change', function() {
+        setMateriasEstado(idsQuinto, this.checked ? 'Aprobada' : 'No cursada');
+    });
     // Reflejar estado al cargar
     function updateQuickCheckboxes() {
         quickPrimero.checked = getMateriasEstado(idsPrimero);
         quickSegundo.checked = getMateriasEstado(idsSegundo);
         quickTercero.checked = getMateriasEstado(idsTercero);
         quickCuarto.checked = getMateriasEstado(idsCuarto);
+        quickQuinto.checked = getMateriasEstado(idsQuinto);
         quickTransversales.checked = getMateriasEstado(idsTransversales);
         quickTaller.checked = getMateriasEstado(idsTaller);
     }
@@ -228,6 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
             { nombre: 'segundo', ids: idsSegundo, el: document.getElementById('contador-segundo') },
             { nombre: 'tercero', ids: idsTercero, el: document.getElementById('contador-tercero') },
             { nombre: 'cuarto', ids: idsCuarto, el: document.getElementById('contador-cuarto') },
+            { nombre: 'quinto', ids: idsQuinto, el: document.getElementById('contador-quinto') },
             { nombre: 'transversales', ids: idsTransversales, el: document.getElementById('contador-transversales') },
         ];
         const tallerId = 3680;
@@ -245,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             // Si es taller y se ignora, restar 1 al total del grupo
             if (ignorarTaller && grupo.ids.includes(tallerId)) y--;
-            grupo.el.textContent = `${x} / ${y} materias seleccionadas`;
+            grupo.el.textContent = `${x} / ${y}`;
             totalX += x;
             totalY += y;
         });
@@ -257,13 +264,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Llamar al actualizar contadores en cada cambio relevante
     subjectChecklist.addEventListener('change', actualizarContadoresMaterias);
     quickTaller.addEventListener('change', actualizarContadoresMaterias);
-    // También al inicializar
-    const oldInitContadores = initializeSubjectControls;
-    initializeSubjectControls = function() {
-        oldInitContadores();
-        updateQuickCheckboxes();
-        actualizarContadoresMaterias();
-    };
+    // También actualizar al hacer click en cualquier botón de estado
+    document.addEventListener('click', function(e) {
+        if (e.target.classList && e.target.classList.contains('status-button')) {
+            setTimeout(actualizarContadoresMaterias, 0);
+        }
+    });
+    // También al resetear
+    resetButton.addEventListener('click', function() {
+        setTimeout(actualizarContadoresMaterias, 0);
+    });
     // Inicializar al cargar
     actualizarContadoresMaterias();
 

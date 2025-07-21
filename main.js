@@ -299,9 +299,11 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             // Ajusta el mensaje según la cantidad real de opcionales a elegir
             let faltan = subjectCount - fijasFiltradas.length;
-            if (opcFiltradas.length > 0 && faltan > 0) {
+            if (opcFiltradas.length > 0 && faltan > 0 && faltan < opcFiltradas.length) {
                 const prefix = fijasFiltradas.length === 0 ? '' : 'Más ';
                 resultsDiv.innerHTML += `<p><strong>${prefix}${faltan} de las siguientes materias, según tu preferencia:</strong></p>`;
+            }
+            if (opcFiltradas.length > 0) {
                 opcFiltradas.forEach(materia => {
                     resultsDiv.innerHTML += `<p>${materia}</p>`;
                 });

@@ -34,7 +34,7 @@ body.light-mode {
     background: #232323;
     padding: 16px;
     margin: 16px 0;
-    max-height: 400px;
+    max-height: 320px;
     overflow-y: auto;
     background: inherit !important;
     border: none !important;
@@ -420,4 +420,11 @@ button.status-button.status-final-ignorar, .subject-buttons .status-final-ignora
 }
 body.dark-mode .status-button.status-final-ignorar, body.light-mode .status-button.status-final-ignorar {
     color: #111 !important;
+}
+
+.materia-separador {
+    height: 18px;
+    width: 100%;
+    background: none;
+    border: none;
 }

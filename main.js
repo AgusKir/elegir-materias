@@ -282,7 +282,9 @@ document.addEventListener('DOMContentLoaded', function() {
             planFiltrado.cargarMateriasDesdeTexto(listado, filteredSelected);
             planFiltrado.cargarNombresDesdeTexto(tabla_nombres);
             planFiltrado.calcularYGuardarLongitudes();
-            planFiltrado.ajustarCuatrimestre3671YPropagar(semester);
+            if (planFiltrado.datos_materias[3671]) {
+                planFiltrado.ajustarCuatrimestre3671YPropagar(semester);
+            }
 
             // Obtener resultados
             const materias = planFiltrado.materiasProximoCuatri(subjectCount);

@@ -393,13 +393,14 @@ const tabla_nombres = `
 3636	Bases de Datos
 3637	Análisis de Sistemas
 3638	Arquitectura de Computadoras
+3676	Responsabilidad Social Universitaria
 3639	Análisis Matemático III
 3640	Algoritmos y Estructuras de Datos
 3641	Bases de Datos Aplicadas
 3642	Principios de Diseño de Sistemas
 3643	Redes de Computadoras
 3644	Gestión de las Organizaciones
-3676	Responsabilidad Social Universitaria
+3680    Taller de Integración
 3645	Álgebra y Geometría Analítica II
 3646	Paradigmas de Programación
 3647	Requisitos Avanzados
@@ -431,10 +432,9 @@ const tabla_nombres = `
 3677	Lenguaje Orientado a Negocios
 3678	Tecnologías en Seguridad
 3679    Visión Artificial
-3680    Taller de Integración
-911     Computación I
-912     Computación II
 901     Inglés I
 902     Inglés II
 903     Inglés III
-904     Inglés IV`;
+904     Inglés IV
+911     Computación I
+912     Computación II`;

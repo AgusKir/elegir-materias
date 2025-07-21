@@ -41,6 +41,7 @@ body.light-mode {
     outline: none !important;
     box-shadow: none !important;
     border-radius: 0 !important;
+    overflow-x: hidden;
 }
 body.light-mode #completed-subjects {
     background: inherit !important;

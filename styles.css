@@ -1,7 +1,7 @@
 body {
     font-family: Arial, sans-serif;
     margin: 0;
-    padding: 20px;
+    padding: 10px;
 }
 
 .container {
@@ -427,4 +427,13 @@ body.dark-mode .status-button.status-final-ignorar, body.light-mode .status-butt
     width: 100%;
     background: none;
     border: none;
+    text-align: center;
+    color: #888;
+    font-size: 1.1em;
+    font-weight: 500;
+    margin: 10px 0 10px 0;
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

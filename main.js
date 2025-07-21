@@ -251,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Solo ignorar las materias en finalIgnorarIds
             const ignorarIds = finalIgnorarIds;
             // Filtrar las materias seleccionadas para excluir las ignoradas
-            const filteredSelected = selectedSubjects.filter(id => !ignorarIds.includes(id));
+            const filteredSelected = selectedSubjects.filter(id => !finalIgnorarIds.includes(id));
             // Crear nuevo plan solo con las materias válidas
             const planFiltrado = new PlanDeEstudios();
             planFiltrado.cargarMateriasDesdeTexto(listado, filteredSelected);
@@ -285,7 +285,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             // Imprime opcionales filtradas si hay
             if (opcFiltradas.length > 0 && materias.cantidad_a_elegir > 0) {
-                resultsDiv.innerHTML += `<p><strong>Más ${materias.cantidad_a_elegir} de las siguientes materias, según tu preferencia:</strong></p>`;
+                const prefix = fijasFiltradas.length === 0 ? '' : 'Más ';
+                resultsDiv.innerHTML += `<p><strong>${prefix}${materias.cantidad_a_elegir} de las siguientes materias, según tu preferencia:</strong></p>`;
                 opcFiltradas.forEach(materia => {
                     resultsDiv.innerHTML += `<p>${materia}</p>`;
                 });

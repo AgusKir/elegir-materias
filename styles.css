@@ -342,4 +342,5 @@ form#subject-form {
     border: none !important;
     outline: none !important;
     box-shadow: none !important;
+    border-radius: 0 !important;
 }

@@ -239,15 +239,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // Filtrar y loggear resultados
             const materiasFijasFiltradas = (materias.materias_fijas || []).filter(materia => {
                 const id = getMateriaId(materia);
-                return id !== null && !ignorarIds.includes(id);
+                return id !== null && !ignorarIds.includes(id) && !finalIgnorarIds.includes(id);
             });
             const materiasOpcFiltradas = (materias.materias_opcionales || []).filter(materia => {
                 const id = getMateriaId(materia);
-                return id !== null && !ignorarIds.includes(id);
+                return id !== null && !ignorarIds.includes(id) && !finalIgnorarIds.includes(id);
             });
             const materiasDisponiblesFiltradas = (materiasDisponibles || []).filter(materia => {
                 const id = getMateriaId(materia);
-                return id !== null && !ignorarIds.includes(id);
+                return id !== null && !ignorarIds.includes(id) && !finalIgnorarIds.includes(id);
             });
             console.log('Materias fijas filtradas:', materiasFijasFiltradas);
             console.log('Materias opcionales filtradas:', materiasOpcFiltradas);

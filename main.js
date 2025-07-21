@@ -270,22 +270,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 planFiltrado.ajustarCuatrimestre3671YPropagar(semester);
             }
             // Obtener resultados
-            const materias = planFiltrado.materiasProximoCuatri(subjectCount);
-            const materiasDisponibles = planFiltrado.puedoCursarEnCuatri(1);
+            // Búsqueda robusta: incrementa el pedido hasta que la cantidad de sugeridas (no ignoradas) sea la correcta
+            let pedido = subjectCount;
+            let materias, fijasFiltradas, opcFiltradas;
+            while (true) {
+                materias = planFiltrado.materiasProximoCuatri(pedido);
+                // Filtra materias ignoradas de la visualización
+                fijasFiltradas = (materias.materias_fijas || []).filter(materia => {
+                    const id = getMateriaId(materia);
+                    return id === null || !finalIgnorarIds.includes(id);
+                });
+                opcFiltradas = (materias.materias_opcionales || []).filter(materia => {
+                    const id = getMateriaId(materia);
+                    return id === null || !finalIgnorarIds.includes(id);
+                });
+                if (fijasFiltradas.length + opcFiltradas.length >= subjectCount || pedido > subjectCount + 10) break;
+                pedido++;
+            }
             // Función robusta para extraer el ID de una materia string
             function getMateriaId(materiaStr) {
                 const match = materiaStr.match(/\((\d+)\)\s*$/);
                 return match ? parseInt(match[1]) : null;
             }
-            // Filtra materias ignoradas de la visualización
-            const fijasFiltradas = (materias.materias_fijas || []).filter(materia => {
-                const id = getMateriaId(materia);
-                return id === null || !finalIgnorarIds.includes(id);
-            });
-            const opcFiltradas = (materias.materias_opcionales || []).filter(materia => {
-                const id = getMateriaId(materia);
-                return id === null || !finalIgnorarIds.includes(id);
-            });
             // Mostrar resultados
             resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:</h3>';
             fijasFiltradas.forEach(materia => {

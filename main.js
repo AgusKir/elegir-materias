@@ -283,17 +283,19 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             // Mostrar resultados
             resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:</h3>';
-            if (materiasFijasFiltradas.length > 0) {
-                materiasFijasFiltradas.forEach(materia => {
-                    resultsDiv.innerHTML += `<p>${materia}</p>`;
-                });
+            // Mostrar exactamente subjectCount materias no ignoradas
+            let count = 0;
+            for (let i = 0; i < materiasFijasFiltradas.length && count < subjectCount; i++) {
+                resultsDiv.innerHTML += `<p>${materiasFijasFiltradas[i]}</p>`;
+                count++;
             }
-            if (materiasOpcFiltradas.length > 0) {
-                const prefix = materiasFijasFiltradas.length > 0 ? 'Más ' : '';
-                resultsDiv.innerHTML += `<p><strong>${prefix}${materias.cantidad_a_elegir} de las siguientes materias, según tu preferencia:</strong></p>`;
-                materiasOpcFiltradas.forEach(materia => {
-                    resultsDiv.innerHTML += `<p>${materia}</p>`;
-                });
+            // Si hay opcionales y aún faltan materias para llegar a subjectCount
+            if (materiasOpcFiltradas.length > 0 && count < subjectCount) {
+                const faltan = subjectCount - count;
+                resultsDiv.innerHTML += `<p><strong>${faltan} de las siguientes materias, según tu preferencia:</strong></p>`;
+                for (let i = 0; i < materiasOpcFiltradas.length && i < faltan; i++) {
+                    resultsDiv.innerHTML += `<p>${materiasOpcFiltradas[i]}</p>`;
+                }
             }
             resultsDiv.innerHTML += '<div style="height: 32px"></div>';
             if (materiasDisponiblesFiltradas.length > 0) {

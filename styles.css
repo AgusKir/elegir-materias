@@ -258,8 +258,8 @@ body.light-mode #calculate-button:hover {
     color: inherit;
 }
 #darkmode-toggle img {
-    width: 32px;
-    height: 32px;
+    width: 64px;
+    height: 64px;
 }
 
 /* Modo oscuro: colores de fondo de materias más oscuros y apagados */

@@ -228,8 +228,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Función robusta para extraer el ID de una materia string
             function getMateriaId(materiaStr) {
-                const match = materiaStr.match(/\d+/);
-                return match ? parseInt(match[0]) : null;
+                const match = materiaStr.match(/\((\d+)\)\s*$/);
+                return match ? parseInt(match[1]) : null;
             }
             // Log de debug para ver los IDs extraídos
             (materias.materias_fijas || []).forEach(materia => {

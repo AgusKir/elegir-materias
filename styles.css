@@ -31,12 +31,18 @@ body.light-mode {
     margin: 16px 0;
     max-height: 400px;
     overflow-y: auto;
+    background: inherit !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
 }
 body.light-mode #completed-subjects {
+    background: inherit !important;
     border: none !important;
-    border-radius: 0 !important;
+    outline: none !important;
     box-shadow: none !important;
-    background: #fafafa;
+    border-radius: 0 !important;
 }
 #completed-subjects label {
     display: block !important;
@@ -343,4 +349,19 @@ form#subject-form {
     outline: none !important;
     box-shadow: none !important;
     border-radius: 0 !important;
+}
+
+.container, form#subject-form {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+#completed-subjects h2 {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
 }

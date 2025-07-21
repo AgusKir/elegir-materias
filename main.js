@@ -273,7 +273,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Obtener todas las materias a ignorar (final ignorar + sus posteriores)
             const ignorarIds = getAllPosteriores(finalIgnorarIds, plan);
-            console.log('Materias ignoradas (Final ignorar + correlativas):', ignorarIds);
 
             // Filtrar las materias seleccionadas para excluir las ignoradas
             const filteredSelected = selectedSubjects.filter(id => !ignorarIds.includes(id));
@@ -294,11 +293,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const match = materiaStr.match(/\((\d+)\)\s*$/);
                 return match ? parseInt(match[1]) : null;
             }
-            // Log de debug para ver los IDs extraídos
-            (materias.materias_fijas || []).forEach(materia => {
-                const id = getMateriaId(materia);
-                console.log('Materia:', materia, 'ID extraído:', id);
-            });
             // Filtrar y loggear resultados
             const materiasFijasFiltradas = (materias.materias_fijas || []).filter(materia => {
                 const id = getMateriaId(materia);
@@ -312,9 +306,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const id = getMateriaId(materia);
                 return id !== null && !ignorarIds.includes(id) && !finalIgnorarIds.includes(id);
             });
-            console.log('Materias fijas filtradas:', materiasFijasFiltradas);
-            console.log('Materias opcionales filtradas:', materiasOpcFiltradas);
-            console.log('Materias disponibles filtradas:', materiasDisponiblesFiltradas);
             // Mostrar resultados
             resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:</h3>';
             if (materiasFijasFiltradas.length > 0) {

@@ -283,39 +283,14 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             // Mostrar resultados
             resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:</h3>';
-            // Combina fijas y opcionales, toma las primeras subjectCount como sugeridas
-            const todasMaterias = [...materiasFijasFiltradas, ...materiasOpcFiltradas];
-            function getValorCorchete(materiaStr) {
-                const match = materiaStr.match(/\[(\d+)\]/);
-                return match ? parseInt(match[1]) : 9999;
-            }
-            // Ordena por valor de corchete ascendente
-            todasMaterias.sort((a, b) => getValorCorchete(a) - getValorCorchete(b));
-            // Selecciona las primeras subjectCount materias
-            let sugeridas = todasMaterias.slice(0, subjectCount);
-            let opcionales = [];
-            let faltan = 0;
-            if (todasMaterias.length > subjectCount && sugeridas.length > 0) {
-                const ultimoValor = getValorCorchete(sugeridas[sugeridas.length - 1]);
-                // El grupo de empate son todas las materias (no ignoradas) con ese valor_corchete, menos las ya sugeridas
-                opcionales = todasMaterias.filter(materia => {
-                    const v = getValorCorchete(materia);
-                    return v === ultimoValor && !sugeridas.includes(materia);
-                });
-                // Quita del final de sugeridas las que empatan (deja solo las que tienen valor_corchete menor)
-                while (sugeridas.length > 0 && getValorCorchete(sugeridas[sugeridas.length - 1]) === ultimoValor) {
-                    sugeridas.pop();
-                }
-                faltan = subjectCount - sugeridas.length;
-            }
-            // Imprime sugeridas
-            sugeridas.forEach(materia => {
+            // Imprime todas las fijas
+            (materias.materias_fijas || []).forEach(materia => {
                 resultsDiv.innerHTML += `<p>${materia}</p>`;
             });
             // Imprime opcionales si hay
-            if (opcionales.length > 0 && faltan > 0) {
-                resultsDiv.innerHTML += `<p><strong>Más ${faltan} de las siguientes materias, según tu preferencia:</strong></p>`;
-                opcionales.forEach(materia => {
+            if ((materias.materias_opcionales || []).length > 0 && materias.cantidad_a_elegir > 0) {
+                resultsDiv.innerHTML += `<p><strong>Más ${materias.cantidad_a_elegir} de las siguientes materias, según tu preferencia:</strong></p>`;
+                materias.materias_opcionales.forEach(materia => {
                     resultsDiv.innerHTML += `<p>${materia}</p>`;
                 });
             }

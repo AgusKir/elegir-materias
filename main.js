@@ -268,29 +268,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 const match = materiaStr.match(/\((\d+)\)\s*$/);
                 return match ? parseInt(match[1]) : null;
             }
-            // Filtrar resultados
-            const materiasFijasFiltradas = (materias.materias_fijas || []).filter(materia => {
+            // Filtra materias ignoradas de la visualización
+            const fijasFiltradas = (materias.materias_fijas || []).filter(materia => {
                 const id = getMateriaId(materia);
-                return id !== null && !ignorarIds.includes(id);
+                return id === null || !finalIgnorarIds.includes(id);
             });
-            const materiasOpcFiltradas = (materias.materias_opcionales || []).filter(materia => {
+            const opcFiltradas = (materias.materias_opcionales || []).filter(materia => {
                 const id = getMateriaId(materia);
-                return id !== null && !ignorarIds.includes(id);
-            });
-            const materiasDisponiblesFiltradas = (materiasDisponibles || []).filter(materia => {
-                const id = getMateriaId(materia);
-                return id !== null && !ignorarIds.includes(id);
+                return id === null || !finalIgnorarIds.includes(id);
             });
             // Mostrar resultados
             resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:</h3>';
-            // Imprime todas las fijas
-            (materias.materias_fijas || []).forEach(materia => {
+            // Imprime todas las fijas filtradas
+            fijasFiltradas.forEach(materia => {
                 resultsDiv.innerHTML += `<p>${materia}</p>`;
             });
-            // Imprime opcionales si hay
-            if ((materias.materias_opcionales || []).length > 0 && materias.cantidad_a_elegir > 0) {
+            // Imprime opcionales filtradas si hay
+            if (opcFiltradas.length > 0 && materias.cantidad_a_elegir > 0) {
                 resultsDiv.innerHTML += `<p><strong>Más ${materias.cantidad_a_elegir} de las siguientes materias, según tu preferencia:</strong></p>`;
-                materias.materias_opcionales.forEach(materia => {
+                opcFiltradas.forEach(materia => {
                     resultsDiv.innerHTML += `<p>${materia}</p>`;
                 });
             }

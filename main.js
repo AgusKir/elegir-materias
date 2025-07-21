@@ -264,8 +264,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Llamar al actualizar contadores en cada cambio relevante
     subjectChecklist.addEventListener('change', actualizarContadoresMaterias);
     quickTaller.addEventListener('change', actualizarContadoresMaterias);
+    quickQuinto.addEventListener('change', actualizarContadoresMaterias);
     // También actualizar al hacer click en cualquier botón de estado
-    document.addEventListener('click', function(e) {
+    subjectChecklist.addEventListener('click', function(e) {
         if (e.target.classList && e.target.classList.contains('status-button')) {
             setTimeout(actualizarContadoresMaterias, 0);
         }

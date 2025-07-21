@@ -367,10 +367,7 @@ form#subject-form {
 }
 
 #completed-subjects h2 {
-    background: transparent !important;
-    border: none !important;
-    outline: none !important;
-    box-shadow: none !important;
+    text-align: center;
 }
 
 .quick-select-row {

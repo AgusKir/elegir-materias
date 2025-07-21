@@ -5,7 +5,7 @@ body {
 }
 
 .container {
-    max-width: 1050px;
+    max-width: 1090px;
     margin: 0 auto;
     display: block !important;
     position: relative;
@@ -163,7 +163,7 @@ button {
 }
 #subject-form select {
     margin-left: 12px;
-    min-width: 50px; //100
+    min-width: 100px;
 }
 
 .status-button.status-final-ignorar, .status-button.status-final-ignorar:focus, .status-button.status-final-ignorar:active {

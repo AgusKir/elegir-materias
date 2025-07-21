@@ -288,15 +288,48 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             // Mostrar resultados
             resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:</h3>';
-            // Imprime todas las fijas filtradas
-            fijasFiltradas.forEach(materia => {
+            // Imprime todas las fijas y opcionales filtradas
+            let sugeridas = [...fijasFiltradas];
+            let opcionales = [...opcFiltradas];
+            // Si la suma es menor a subjectCount, agrega más materias del siguiente valor_corchete
+            if (sugeridas.length + opcionales.length < subjectCount) {
+                // Buscar todas las materias disponibles (no ignoradas), ordenadas por valor_corchete
+                const todasMaterias = [...fijasFiltradas, ...opcFiltradas];
+                const todasIds = new Set(todasMaterias.map(m => getMateriaId(m)));
+                // Buscar todas las materias posibles (no ignoradas, no ya sugeridas)
+                let todasDisponibles = (materiasDisponiblesFiltradas || []).filter(m => !todasIds.has(getMateriaId(m)));
+                todasDisponibles.sort((a, b) => {
+                    // Ordenar por valor_corchete
+                    const va = (a.match(/\[(\d+)\]/) || [])[1] || 9999;
+                    const vb = (b.match(/\[(\d+)\]/) || [])[1] || 9999;
+                    return parseInt(va) - parseInt(vb);
+                });
+                // Agregar hasta llegar a subjectCount
+                while (sugeridas.length < subjectCount && todasDisponibles.length > 0) {
+                    sugeridas.push(todasDisponibles.shift());
+                }
+                // Si hay empate en el valor_corchete con la última sugerida, todas las materias con ese valor van como opcionales
+                if (sugeridas.length > 0) {
+                    const ultimoValor = (sugeridas[sugeridas.length - 1].match(/\[(\d+)\]/) || [])[1];
+                    // Quita del final de sugeridas las que empatan
+                    while (sugeridas.length > 0 && (sugeridas[sugeridas.length - 1].match(/\[(\d+)\]/) || [])[1] === ultimoValor) {
+                        opcionales.unshift(sugeridas.pop());
+                    }
+                    // Agrega todas las materias disponibles con ese valor
+                    while (todasDisponibles.length > 0 && (todasDisponibles[0].match(/\[(\d+)\]/) || [])[1] === ultimoValor) {
+                        opcionales.push(todasDisponibles.shift());
+                    }
+                }
+            }
+            // Imprime sugeridas
+            sugeridas.forEach(materia => {
                 resultsDiv.innerHTML += `<p>${materia}</p>`;
             });
-            // Imprime opcionales filtradas si hay
-            if (opcFiltradas.length > 0 && materias.cantidad_a_elegir > 0) {
-                const prefix = fijasFiltradas.length === 0 ? '' : 'Más ';
+            // Imprime opcionales si hay
+            if (opcionales.length > 0 && materias.cantidad_a_elegir > 0) {
+                const prefix = sugeridas.length === 0 ? '' : 'Más ';
                 resultsDiv.innerHTML += `<p><strong>${prefix}${materias.cantidad_a_elegir} de las siguientes materias, según tu preferencia:</strong></p>`;
-                opcFiltradas.forEach(materia => {
+                opcionales.forEach(materia => {
                     resultsDiv.innerHTML += `<p>${materia}</p>`;
                 });
             }

@@ -220,6 +220,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Inicializa estado al cargar
     updateQuickCheckboxes();
 
+    // Filtrar el string listado para eliminar materias ignoradas
+    function filtrarListadoPorIds(listado, idsIgnorar) {
+        const idsSet = new Set(idsIgnorar);
+        return listado.split('\n').filter(linea => {
+            const idMatch = linea.match(/^(\d+):?/);
+            if (!idMatch) return true;
+            const id = parseInt(idMatch[1]);
+            return !idsSet.has(id);
+        }).join('\n');
+    }
+
     calculateButton.addEventListener('click', function() {
         // Obtener materias seleccionadas (Aprobada o Final)
         const selectedSubjects = Array.from(subjectChecklist.querySelectorAll('input:checked'))
@@ -239,13 +250,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // resultsDiv.innerHTML = '<p>Calculando...</p>';
-
+        const listadoFiltrado = filtrarListadoPorIds(listado, finalIgnorarIds);
         try {
             // Crear nueva instancia del plan
             const plan = new PlanDeEstudios();
-            // Cargar datos (sin eliminar nada aún)
-            plan.cargarMateriasDesdeTexto(listado, []);
+            plan.cargarMateriasDesdeTexto(listadoFiltrado, []);
             plan.cargarNombresDesdeTexto(tabla_nombres);
             plan.calcularYGuardarLongitudes();
             // Solo ignorar las materias en finalIgnorarIds
@@ -254,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const filteredSelected = selectedSubjects.filter(id => !finalIgnorarIds.includes(id));
             // Crear nuevo plan solo con las materias válidas
             const planFiltrado = new PlanDeEstudios();
-            planFiltrado.cargarMateriasDesdeTexto(listado, filteredSelected);
+            planFiltrado.cargarMateriasDesdeTexto(listadoFiltrado, filteredSelected);
             planFiltrado.cargarNombresDesdeTexto(tabla_nombres);
             planFiltrado.calcularYGuardarLongitudes();
             if (planFiltrado.datos_materias[3671]) {

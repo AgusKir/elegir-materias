@@ -413,3 +413,11 @@ form#subject-form {
 .container > p {
     text-align: center;
 }
+
+button.status-button.status-final-ignorar, .subject-buttons .status-final-ignorar, .status-button.status-final-ignorar, .status-button.status-final-ignorar:focus, .status-button.status-final-ignorar:active {
+    background-color: #FF9800 !important;
+    color: #111 !important;
+}
+body.dark-mode .status-button.status-final-ignorar, body.light-mode .status-button.status-final-ignorar {
+    color: #111 !important;
+}

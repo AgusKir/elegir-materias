@@ -409,3 +409,7 @@ form#subject-form {
     width: 100% !important;
     margin: 0 0 8px 0;
 }
+
+.container > p {
+    text-align: center;
+}

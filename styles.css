@@ -163,7 +163,7 @@ button {
 }
 #subject-form select {
     margin-left: 12px;
-    min-width: 120px;
+    min-width: 100px;
 }
 
 .status-button.status-final-ignorar, .status-button.status-final-ignorar:focus, .status-button.status-final-ignorar:active {

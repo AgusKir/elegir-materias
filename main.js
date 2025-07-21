@@ -285,7 +285,6 @@ document.addEventListener('DOMContentLoaded', function() {
             resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:</h3>';
             // Combina fijas y opcionales, toma las primeras subjectCount como sugeridas
             const todasMaterias = [...materiasFijasFiltradas, ...materiasOpcFiltradas];
-            // Extrae el valor de corchete de cada materia
             function getValorCorchete(materiaStr) {
                 const match = materiaStr.match(/\[(\d+)\]/);
                 return match ? parseInt(match[1]) : 9999;
@@ -294,20 +293,18 @@ document.addEventListener('DOMContentLoaded', function() {
             todasMaterias.sort((a, b) => getValorCorchete(a) - getValorCorchete(b));
             // Selecciona las primeras subjectCount materias
             let sugeridas = todasMaterias.slice(0, subjectCount);
-            // Si hay empate en el valor de corchete con la última sugerida, esas van como opcionales
             let opcionales = [];
             let faltan = 0;
-            if (todasMaterias.length > subjectCount) {
+            if (todasMaterias.length > subjectCount && sugeridas.length > 0) {
                 const ultimoValor = getValorCorchete(sugeridas[sugeridas.length - 1]);
-                // Quita del final de sugeridas las que empatan
+                // El grupo de empate son todas las materias (no ignoradas) con ese valor_corchete, menos las ya sugeridas
+                opcionales = todasMaterias.filter(materia => {
+                    const v = getValorCorchete(materia);
+                    return v === ultimoValor && !sugeridas.includes(materia);
+                });
+                // Quita del final de sugeridas las que empatan (deja solo las que tienen valor_corchete menor)
                 while (sugeridas.length > 0 && getValorCorchete(sugeridas[sugeridas.length - 1]) === ultimoValor) {
-                    opcionales.unshift(sugeridas.pop());
-                }
-                // Agrega todas las materias empatadas restantes
-                for (let i = subjectCount; i < todasMaterias.length; i++) {
-                    if (getValorCorchete(todasMaterias[i]) === ultimoValor) {
-                        opcionales.push(todasMaterias[i]);
-                    }
+                    sugeridas.pop();
                 }
                 faltan = subjectCount - sugeridas.length;
             }
@@ -315,10 +312,10 @@ document.addEventListener('DOMContentLoaded', function() {
             sugeridas.forEach(materia => {
                 resultsDiv.innerHTML += `<p>${materia}</p>`;
             });
-            // Imprime opcionales si hay faltan > 0
-            if (faltan > 0 && opcionales.length > 0) {
+            // Imprime opcionales si hay
+            if (opcionales.length > 0 && faltan > 0) {
                 resultsDiv.innerHTML += `<p><strong>Más ${faltan} de las siguientes materias, según tu preferencia:</strong></p>`;
-                opcionales.slice(0, faltan).forEach(materia => {
+                opcionales.forEach(materia => {
                     resultsDiv.innerHTML += `<p>${materia}</p>`;
                 });
             }

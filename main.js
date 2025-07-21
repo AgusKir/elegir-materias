@@ -310,6 +310,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
             resultsDiv.innerHTML += '<div style="height: 32px"></div>';
+            // Después del bucle de sugeridas/opcionales, define materiasDisponibles
+            const materiasDisponibles = planFiltrado.puedoCursarEnCuatri(1);
             const materiasDisponiblesFiltradas = (materiasDisponibles || []).filter(materia => {
                 const id = getMateriaId(materia);
                 return id === null || !finalIgnorarIds.includes(id);

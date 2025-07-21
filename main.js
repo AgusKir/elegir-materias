@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     resultsDiv.innerHTML += `<p> ${materia}</p>`;
                 });
             }
-            if (sugeridas.length === 0 && opcionales.length === 0) {
+            if ((materias.materias_fijas || []).length === 0 && (materias.materias_opcionales || []).length === 0) {
                 resultsDiv.innerHTML = '<p>No hay materias disponibles para cursar.</p>';
             }
         } catch (error) {

@@ -248,7 +248,7 @@ body.light-mode #calculate-button:hover {
 #darkmode-toggle {
     position: absolute;
     top: 24px;
-    left: 24px;
+    left: 124px;
     right: auto;
     z-index: 10;
     background: none;
@@ -404,11 +404,11 @@ form#subject-form {
     margin-bottom: 0;
 }
 #results {
-    display: block;
-    width: 100%;
+    display: block !important;
+    width: 100% !important;
 }
-#results p, #results h3, #results div {
-    display: block;
-    width: 100%;
+#results > p, #results > h3, #results > div {
+    display: block !important;
+    width: 100% !important;
     margin: 0 0 8px 0;
 }

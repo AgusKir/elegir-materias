@@ -239,28 +239,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Función para obtener todas las correlativas siguientes recursivamente
-        function getAllPosteriores(ids, plan) {
-            const toRemove = new Set(ids);
-            const stack = [...ids];
-            while (stack.length > 0) {
-                const current = stack.pop();
-                const materia = plan.materias[current];
-                if (materia) {
-                    materia.posteriores.forEach(postId => {
-                        if (!toRemove.has(postId)) {
-                            toRemove.add(postId);
-                            stack.push(postId);
-                        }
-                    });
-                } else {
-                    toRemove.add(current);
-                }
-            }
-            return Array.from(toRemove);
-        }
-
-        resultsDiv.innerHTML = '<p>Calculando...</p>';
+        // resultsDiv.innerHTML = '<p>Calculando...</p>';
 
         try {
             // Crear nueva instancia del plan
@@ -269,14 +248,10 @@ document.addEventListener('DOMContentLoaded', function() {
             plan.cargarMateriasDesdeTexto(listado, []);
             plan.cargarNombresDesdeTexto(tabla_nombres);
             plan.calcularYGuardarLongitudes();
-            plan.ajustarCuatrimestre3671YPropagar(semester);
-
-            // Obtener todas las materias a ignorar (final ignorar + sus posteriores)
-            const ignorarIds = getAllPosteriores(finalIgnorarIds, plan);
-
+            // Solo ignorar las materias en finalIgnorarIds
+            const ignorarIds = finalIgnorarIds;
             // Filtrar las materias seleccionadas para excluir las ignoradas
             const filteredSelected = selectedSubjects.filter(id => !ignorarIds.includes(id));
-
             // Crear nuevo plan solo con las materias válidas
             const planFiltrado = new PlanDeEstudios();
             planFiltrado.cargarMateriasDesdeTexto(listado, filteredSelected);
@@ -285,28 +260,26 @@ document.addEventListener('DOMContentLoaded', function() {
             if (planFiltrado.datos_materias[3671]) {
                 planFiltrado.ajustarCuatrimestre3671YPropagar(semester);
             }
-
             // Obtener resultados
             const materias = planFiltrado.materiasProximoCuatri(subjectCount);
             const materiasDisponibles = planFiltrado.puedoCursarEnCuatri(1);
-
             // Función robusta para extraer el ID de una materia string
             function getMateriaId(materiaStr) {
                 const match = materiaStr.match(/\((\d+)\)\s*$/);
                 return match ? parseInt(match[1]) : null;
             }
-            // Filtrar y loggear resultados
+            // Filtrar resultados
             const materiasFijasFiltradas = (materias.materias_fijas || []).filter(materia => {
                 const id = getMateriaId(materia);
-                return id !== null && !ignorarIds.includes(id) && !finalIgnorarIds.includes(id);
+                return id !== null && !ignorarIds.includes(id);
             });
             const materiasOpcFiltradas = (materias.materias_opcionales || []).filter(materia => {
                 const id = getMateriaId(materia);
-                return id !== null && !ignorarIds.includes(id) && !finalIgnorarIds.includes(id);
+                return id !== null && !ignorarIds.includes(id);
             });
             const materiasDisponiblesFiltradas = (materiasDisponibles || []).filter(materia => {
                 const id = getMateriaId(materia);
-                return id !== null && !ignorarIds.includes(id) && !finalIgnorarIds.includes(id);
+                return id !== null && !ignorarIds.includes(id);
             });
             // Mostrar resultados
             resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:</h3>';

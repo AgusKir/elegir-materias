@@ -438,3 +438,11 @@ body.dark-mode .status-button.status-final-ignorar, body.light-mode .status-butt
     align-items: center;
     justify-content: center;
 }
+
+.contador-materias {
+  margin-left: 6px;
+  margin-right: 12px;
+  color: #888;
+  font-size: 0.98em;
+  vertical-align: middle;
+}

@@ -220,6 +220,53 @@ document.addEventListener('DOMContentLoaded', function() {
     // Inicializa estado al cargar
     updateQuickCheckboxes();
 
+    // --- CONTADORES DE MATERIAS ---
+    function actualizarContadoresMaterias() {
+        // Definir los grupos y sus ids
+        const grupos = [
+            { nombre: 'primero', ids: idsPrimero, el: document.getElementById('contador-primero') },
+            { nombre: 'segundo', ids: idsSegundo, el: document.getElementById('contador-segundo') },
+            { nombre: 'tercero', ids: idsTercero, el: document.getElementById('contador-tercero') },
+            { nombre: 'cuarto', ids: idsCuarto, el: document.getElementById('contador-cuarto') },
+            { nombre: 'transversales', ids: idsTransversales, el: document.getElementById('contador-transversales') },
+        ];
+        const tallerId = 3680;
+        const ignorarTaller = quickTaller.checked;
+        let totalX = 0;
+        let totalY = 0;
+        grupos.forEach(grupo => {
+            let x = 0;
+            let y = grupo.ids.length;
+            grupo.ids.forEach(id => {
+                // Si es taller y se ignora, no lo contamos
+                if (ignorarTaller && id === tallerId) return;
+                const status = localStorage.getItem(`subject-status-${id}`);
+                if (status && status !== 'No cursada') x++;
+            });
+            // Si es taller y se ignora, restar 1 al total del grupo
+            if (ignorarTaller && grupo.ids.includes(tallerId)) y--;
+            grupo.el.textContent = `${x} / ${y} materias seleccionadas`;
+            totalX += x;
+            totalY += y;
+        });
+        // General
+        const elGeneral = document.getElementById('contador-general');
+        elGeneral.textContent = `${totalX} / ${totalY} materias seleccionadas en total`;
+    }
+
+    // Llamar al actualizar contadores en cada cambio relevante
+    subjectChecklist.addEventListener('change', actualizarContadoresMaterias);
+    quickTaller.addEventListener('change', actualizarContadoresMaterias);
+    // También al inicializar
+    const oldInitContadores = initializeSubjectControls;
+    initializeSubjectControls = function() {
+        oldInitContadores();
+        updateQuickCheckboxes();
+        actualizarContadoresMaterias();
+    };
+    // Inicializar al cargar
+    actualizarContadoresMaterias();
+
     // Filtrar el string listado para eliminar materias ignoradas
     function filtrarListadoPorIds(listado, idsIgnorar) {
         const idsSet = new Set(idsIgnorar);

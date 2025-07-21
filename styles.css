@@ -168,7 +168,7 @@ button {
 
 .status-button.status-final-ignorar, .status-button.status-final-ignorar:focus, .status-button.status-final-ignorar:active {
     background-color: #FF9800 !important;
-    color: #fff !important;
+    color: #111 !important;
 }
 .status-button.status-final, .status-button.status-final:focus, .status-button.status-final:active {
     background-color: #FFD600 !important;

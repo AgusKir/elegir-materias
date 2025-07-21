@@ -57,9 +57,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function initializeSubjectControls() {
         subjectChecklist.querySelectorAll('.subject-label').forEach(subjectDiv => {
-            // Obtener el checkbox y el texto
+            // Obtener el checkbox y el nombre original
             const checkbox = subjectDiv.querySelector('input[type="checkbox"]');
-            const subjectText = subjectDiv.textContent.trim();
+            const subjectText = subjectDiv.getAttribute('data-nombre');
             const id = subjectText.split(')')[0].replace('(', '').trim();
             // Limpiar el div
             subjectDiv.innerHTML = '';
@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Restaurar colores y checkboxes desde localStorage
         subjectChecklist.querySelectorAll('.subject-label').forEach(subjectDiv => {
             const checkbox = subjectDiv.querySelector('input[type="checkbox"]');
-            const subjectText = subjectDiv.textContent.trim();
+            const subjectText = subjectDiv.getAttribute('data-nombre');
             const id = subjectText.split(')')[0].replace('(', '').trim();
             const row = subjectDiv.querySelector('.subject-row');
             const status = localStorage.getItem(`subject-status-${id}`);
@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const finalIgnorarIds = [];
         subjectChecklist.querySelectorAll('.subject-label').forEach(subjectDiv => {
             const checkbox = subjectDiv.querySelector('input[type="checkbox"]');
-            const subjectText = subjectDiv.textContent.trim();
+            const subjectText = subjectDiv.getAttribute('data-nombre');
             const id = parseInt(subjectText.split(')')[0].replace('(', '').trim());
             const status = localStorage.getItem(`subject-status-${id}`);
             if (status === 'Final (ignorar)') {

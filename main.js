@@ -297,14 +297,11 @@ document.addEventListener('DOMContentLoaded', function() {
             fijasFiltradas.forEach(materia => {
                 resultsDiv.innerHTML += `<p>${materia}</p>`;
             });
-            // Ajusta el mensaje si la suma es menor a la cantidad pedida
-            let cantidadOpcional = materias.cantidad_a_elegir;
-            if (fijasFiltradas.length + opcFiltradas.length < subjectCount) {
-                cantidadOpcional = opcFiltradas.length;
-            }
-            if (opcFiltradas.length > 0 && cantidadOpcional > 0) {
+            // Ajusta el mensaje según la cantidad real de opcionales a elegir
+            let faltan = subjectCount - fijasFiltradas.length;
+            if (opcFiltradas.length > 0 && faltan > 0) {
                 const prefix = fijasFiltradas.length === 0 ? '' : 'Más ';
-                resultsDiv.innerHTML += `<p><strong>${prefix}${cantidadOpcional} de las siguientes materias, según tu preferencia:</strong></p>`;
+                resultsDiv.innerHTML += `<p><strong>${prefix}${faltan} de las siguientes materias, según tu preferencia:</strong></p>`;
                 opcFiltradas.forEach(materia => {
                     resultsDiv.innerHTML += `<p>${materia}</p>`;
                 });

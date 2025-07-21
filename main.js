@@ -157,6 +157,71 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize subject controls
     initializeSubjectControls();
 
+    // Lógica de selección rápida
+    function setMateriasEstado(ids, estado) {
+        ids.forEach(id => {
+            if (estado === 'Aprobada') {
+                localStorage.setItem(`subject-status-${id}`, 'Aprobada');
+            } else {
+                localStorage.removeItem(`subject-status-${id}`);
+            }
+        });
+        initializeSubjectControls();
+    }
+    function getMateriasEstado(ids) {
+        return ids.every(id => localStorage.getItem(`subject-status-${id}`) === 'Aprobada');
+    }
+    // IDs de cada grupo
+    const idsPrimero = Array.from({length: 3632-3621+1}, (_,i)=>3621+i);
+    const idsSegundo = Array.from({length: 3644-3633+1}, (_,i)=>3633+i).concat([3676]);
+    const idsTercero = Array.from({length: 3655-3645+1}, (_,i)=>3645+i).concat([3675]);
+    const idsCuarto = Array.from({length: 3667-3656+1}, (_,i)=>3656+i);
+    const idsTransversales = [901,902,903,904,911,912];
+    const idsTaller = [3680];
+    // Elementos
+    const quickPrimero = document.getElementById('quick-primero');
+    const quickSegundo = document.getElementById('quick-segundo');
+    const quickTercero = document.getElementById('quick-tercero');
+    const quickCuarto = document.getElementById('quick-cuarto');
+    const quickTransversales = document.getElementById('quick-transversales');
+    const quickTaller = document.getElementById('quick-taller');
+    // Handlers
+    quickPrimero.addEventListener('change', function() {
+        setMateriasEstado(idsPrimero, this.checked ? 'Aprobada' : 'No cursada');
+    });
+    quickSegundo.addEventListener('change', function() {
+        setMateriasEstado(idsSegundo, this.checked ? 'Aprobada' : 'No cursada');
+    });
+    quickTercero.addEventListener('change', function() {
+        setMateriasEstado(idsTercero, this.checked ? 'Aprobada' : 'No cursada');
+    });
+    quickCuarto.addEventListener('change', function() {
+        setMateriasEstado(idsCuarto, this.checked ? 'Aprobada' : 'No cursada');
+    });
+    quickTransversales.addEventListener('change', function() {
+        setMateriasEstado(idsTransversales, this.checked ? 'Aprobada' : 'No cursada');
+    });
+    quickTaller.addEventListener('change', function() {
+        setMateriasEstado(idsTaller, this.checked ? 'Aprobada' : 'No cursada');
+    });
+    // Reflejar estado al cargar
+    function updateQuickCheckboxes() {
+        quickPrimero.checked = getMateriasEstado(idsPrimero);
+        quickSegundo.checked = getMateriasEstado(idsSegundo);
+        quickTercero.checked = getMateriasEstado(idsTercero);
+        quickCuarto.checked = getMateriasEstado(idsCuarto);
+        quickTransversales.checked = getMateriasEstado(idsTransversales);
+        quickTaller.checked = getMateriasEstado(idsTaller);
+    }
+    // Llama updateQuickCheckboxes después de initializeSubjectControls
+    const oldInit = initializeSubjectControls;
+    initializeSubjectControls = function() {
+        oldInit();
+        updateQuickCheckboxes();
+    };
+    // Inicializa estado al cargar
+    updateQuickCheckboxes();
+
     calculateButton.addEventListener('click', function() {
         // Obtener materias seleccionadas (Aprobada o Final)
         const selectedSubjects = Array.from(subjectChecklist.querySelectorAll('input:checked'))

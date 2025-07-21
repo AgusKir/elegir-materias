@@ -291,6 +291,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
             resultsDiv.innerHTML += '<div style="height: 32px"></div>';
+            const materiasDisponiblesFiltradas = (materiasDisponibles || []).filter(materia => {
+                const id = getMateriaId(materia);
+                return id === null || !finalIgnorarIds.includes(id);
+            });
             if (materiasDisponiblesFiltradas.length > 0) {
                 resultsDiv.innerHTML += '<h3>Todas las materias que podrías cursar:</h3>';
                 resultsDiv.innerHTML += '<p>Mientras más bajo el número en corchetes, más urgente es que curses una materia.</p>';

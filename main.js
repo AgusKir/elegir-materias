@@ -102,6 +102,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     const checked = Array.from(subjectChecklist.querySelectorAll('input[type="checkbox"]:checked'))
                         .map(input => parseInt(input.value));
                     localStorage.setItem('completedSubjects', JSON.stringify(checked));
+                    // ACTUALIZAR CONTADORES EN TIEMPO REAL
+                    if (typeof actualizarContadoresMaterias === 'function') actualizarContadoresMaterias();
                 };
                 buttonsDiv.appendChild(button);
             });

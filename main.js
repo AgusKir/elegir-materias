@@ -50,6 +50,46 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // --- Notificación superior reusable ---
+    function showTopNotification(message, durationMs) {
+        // Evitar múltiples instancias simultáneas
+        let existing = document.querySelector('.top-notification');
+        if (existing) existing.remove();
+
+        const notif = document.createElement('div');
+        notif.className = 'top-notification';
+        notif.innerHTML = `<div class="notif-message">${message}</div>`;
+        const close = document.createElement('button');
+        close.className = 'close-btn';
+        close.setAttribute('aria-label', 'Cerrar');
+        close.textContent = '×';
+        close.onclick = () => {
+            if (timer) clearInterval(timer);
+            notif.remove();
+        };
+        const progress = document.createElement('div');
+        progress.className = 'progress-bar';
+        const fill = document.createElement('div');
+        fill.className = 'progress-fill';
+        progress.appendChild(fill);
+        notif.appendChild(close);
+        notif.appendChild(progress);
+        document.body.appendChild(notif);
+
+        const start = Date.now();
+        const total = durationMs;
+        let timer = setInterval(() => {
+            const elapsed = Date.now() - start;
+            const remaining = Math.max(0, total - elapsed);
+            const pct = (remaining / total) * 100;
+            fill.style.width = pct + '%';
+            if (remaining <= 0) {
+                clearInterval(timer);
+                notif.remove();
+            }
+        }, 100);
+    }
+
     const resetButton = document.getElementById('reset-button');
 
     function initializeSubjectControls() {
@@ -75,12 +115,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const buttonsDiv = document.createElement('div');
             buttonsDiv.className = 'subject-buttons';
 
-            [
-                { status: 'Aprobada', check: true, className: 'subject-status-aprobada', btnClass: 'status-button status-aprobada' },
-                { status: 'Final', check: true, className: 'subject-status-final', btnClass: 'status-button status-final' },
-                { status: 'Final (ignorar)', check: true, className: 'subject-status-final-ignorar', btnClass: 'status-button status-final-ignorar' },
-                { status: 'No cursada', check: false, className: 'subject-status-no-cursada', btnClass: 'status-button status-no-cursada' }
-            ].forEach(({ status, check, className, btnClass }) => {
+            // Configuración de botones: especial para 3680 (Taller de Integración)
+            const buttonConfigs = (id === '3680')
+                ? [
+                    { status: 'No la voy a cursar', check: true, className: 'subject-status-final-ignorar', btnClass: 'status-button status-final-ignorar' },
+                    { status: 'Aprobada', check: true, className: 'subject-status-aprobada', btnClass: 'status-button status-aprobada' },
+                    { status: 'No cursada', check: false, className: 'subject-status-no-cursada', btnClass: 'status-button status-no-cursada' }
+                  ]
+                : [
+                    { status: 'Aprobada', check: true, className: 'subject-status-aprobada', btnClass: 'status-button status-aprobada' },
+                    { status: 'Final', check: true, className: 'subject-status-final', btnClass: 'status-button status-final' },
+                    { status: 'Final (ignorar)', check: true, className: 'subject-status-final-ignorar', btnClass: 'status-button status-final-ignorar' },
+                    { status: 'No cursada', check: false, className: 'subject-status-no-cursada', btnClass: 'status-button status-no-cursada' }
+                  ];
+
+            buttonConfigs.forEach(({ status, check, className, btnClass }) => {
                 const button = document.createElement('button');
                 button.textContent = status;
                 button.type = 'button';
@@ -104,6 +153,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     localStorage.setItem('completedSubjects', JSON.stringify(checked));
                     // ACTUALIZAR CONTADORES EN TIEMPO REAL
                     if (typeof actualizarContadoresMaterias === 'function') actualizarContadoresMaterias();
+
+                    // Notificación al aprobar 3622 (Análisis Matemático I)
+                    if (status === 'Aprobada' && id === '3622') {
+                        if (!sessionStorage.getItem('notif-quick-select-shown')) {
+                            showTopNotification('Recordá que podés marcar al instante todas las materias de un año con las cajas que están abajo de la tabla', 15000);
+                            sessionStorage.setItem('notif-quick-select-shown', '1');
+                        } else {
+                            showTopNotification('Recordá que podés marcar al instante todas las materias de un año con las cajas que están abajo de la tabla', 15000);
+                        }
+                    }
                 };
                 buttonsDiv.appendChild(button);
             });
@@ -113,6 +172,16 @@ document.addEventListener('DOMContentLoaded', function() {
             subjectDiv.style.display = 'block';
             subjectDiv.style.width = '100%';
             row.style.width = '100%';
+
+            // Valor por defecto para Taller de Integración: "No la voy a cursar"
+            if (id === '3680') {
+                const current = localStorage.getItem(`subject-status-${id}`);
+                if (!current) {
+                    localStorage.setItem(`subject-status-${id}`, 'No la voy a cursar');
+                    row.className = 'subject-row subject-status-final-ignorar';
+                    checkbox.checked = true;
+                }
+            }
         });
 
         // Restaurar colores y checkboxes desde localStorage
@@ -132,6 +201,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (status === 'Final (ignorar)') {
                     row.className = 'subject-row subject-status-final-ignorar';
                     checkbox.checked = false;
+                } else if (status === 'No la voy a cursar') {
+                    row.className = 'subject-row subject-status-final-ignorar';
+                    checkbox.checked = true;
                 } else {
                     row.className = 'subject-row subject-status-no-cursada';
                     checkbox.checked = false;
@@ -177,7 +249,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const idsTercero = Array.from({length: 3655-3645+1}, (_,i)=>3645+i).concat([3675]);
     const idsCuarto = Array.from({length: 3667-3656+1}, (_,i)=>3656+i);
     const idsTransversales = [901,902,903,904,911,912];
-    const idsTaller = [3680];
     const idsQuinto = [3668, 3669, 3670, 3671, 3677, 3678, 3679];
     // Elementos
     const quickPrimero = document.getElementById('quick-primero');
@@ -185,7 +256,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const quickTercero = document.getElementById('quick-tercero');
     const quickCuarto = document.getElementById('quick-cuarto');
     const quickTransversales = document.getElementById('quick-transversales');
-    const quickTaller = document.getElementById('quick-taller');
     const quickQuinto = document.getElementById('quick-quinto');
     // Handlers
     quickPrimero.addEventListener('change', function() {
@@ -203,9 +273,6 @@ document.addEventListener('DOMContentLoaded', function() {
     quickTransversales.addEventListener('change', function() {
         setMateriasEstado(idsTransversales, this.checked ? 'Aprobada' : 'No cursada');
     });
-    quickTaller.addEventListener('change', function() {
-        setMateriasEstado(idsTaller, this.checked ? 'Aprobada' : 'No cursada');
-    });
     quickQuinto.addEventListener('change', function() {
         setMateriasEstado(idsQuinto, this.checked ? 'Aprobada' : 'No cursada');
     });
@@ -217,7 +284,6 @@ document.addEventListener('DOMContentLoaded', function() {
         quickCuarto.checked = getMateriasEstado(idsCuarto);
         quickQuinto.checked = getMateriasEstado(idsQuinto);
         quickTransversales.checked = getMateriasEstado(idsTransversales);
-        quickTaller.checked = getMateriasEstado(idsTaller);
     }
     // Llama updateQuickCheckboxes después de initializeSubjectControls
     const oldInit = initializeSubjectControls;
@@ -239,21 +305,15 @@ document.addEventListener('DOMContentLoaded', function() {
             { nombre: 'quinto', ids: idsQuinto, el: document.getElementById('contador-quinto') },
             { nombre: 'transversales', ids: idsTransversales, el: document.getElementById('contador-transversales') },
         ];
-        const tallerId = 3680;
-        const ignorarTaller = quickTaller.checked;
         let totalX = 0;
         let totalY = 0;
         grupos.forEach(grupo => {
             let x = 0;
             let y = grupo.ids.length;
             grupo.ids.forEach(id => {
-                // Si es taller y se ignora, no lo contamos
-                if (ignorarTaller && id === tallerId) return;
                 const status = localStorage.getItem(`subject-status-${id}`);
                 if (status && status !== 'No cursada') x++;
             });
-            // Si es taller y se ignora, restar 1 al total del grupo
-            if (ignorarTaller && grupo.ids.includes(tallerId)) y--;
             grupo.el.textContent = `${x} / ${y}`;
             totalX += x;
             totalY += y;
@@ -265,7 +325,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Llamar al actualizar contadores en cada cambio relevante
     subjectChecklist.addEventListener('change', actualizarContadoresMaterias);
-    quickTaller.addEventListener('change', actualizarContadoresMaterias);
     quickQuinto.addEventListener('change', actualizarContadoresMaterias);
     // También actualizar al hacer click en cualquier botón de estado
     subjectChecklist.addEventListener('click', function(e) {

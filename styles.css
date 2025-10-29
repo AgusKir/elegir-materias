@@ -446,3 +446,68 @@ body.dark-mode .status-button.status-final-ignorar, body.light-mode .status-butt
   font-size: 0.98em;
   vertical-align: middle;
 }
+
+/* Grid de 3x2 para los selectores rápidos */
+.quick-select-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px 24px;
+    margin: 0 0 18px 0;
+    padding-left: 12px; /* más padding para alinear visualmente con la tabla */
+}
+.quick-select-grid .quick-item {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+.quick-select-grid .quick-item label {
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+}
+
+/* Notificación superior */
+.top-notification {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 820px;
+    width: calc(100% - 40px);
+    background: #2b2f31;
+    color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    padding: 12px 44px 18px 16px;
+    z-index: 1000;
+}
+body.light-mode .top-notification {
+    background: #f2f4f6;
+    color: #111;
+}
+.top-notification .close-btn {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-size: 20px;
+    cursor: pointer;
+}
+.top-notification .progress-bar {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 4px;
+    width: 100%;
+    background: transparent;
+    overflow: hidden;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+.top-notification .progress-bar .progress-fill {
+    height: 100%;
+    width: 100%;
+    background: #FF9800; /* mismo color que Final (ignorar) */
+}

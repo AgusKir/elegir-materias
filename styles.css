@@ -447,13 +447,13 @@ body.dark-mode .status-button.status-final-ignorar, body.light-mode .status-butt
   vertical-align: middle;
   display: inline-block;
   white-space: nowrap;
-  min-width: 9ch; /* más ancho para evitar saltos de línea */
+  min-width: 8ch; /* leve aumento para evitar saltos de línea */
 }
 
 /* Grid de 3x2 para los selectores rápidos */
 .quick-select-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(280px, 1fr));
+    grid-template-columns: repeat(3, minmax(240px, 1fr));
     gap: 8px 24px;
     margin: 0 0 18px 0;
     padding-left: 12px; /* más padding para alinear visualmente con la tabla */
@@ -462,7 +462,7 @@ body.dark-mode .status-button.status-final-ignorar, body.light-mode .status-butt
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    white-space: nowrap;
+    /* permitir que el label se parta si hace falta en pantallas chicas */
 }
 .quick-select-grid .quick-item label {
     display: flex;
@@ -491,9 +491,9 @@ body.light-mode .top-notification {
 }
 .top-notification > .close-btn {
     position: absolute;
-    top: 6px;
-    right: 8px;
-    bottom: auto;
+    top: 6px !important;
+    right: 8px !important;
+    bottom: auto !important;
     background: transparent;
     border: none;
     color: inherit;
@@ -501,6 +501,7 @@ body.light-mode .top-notification {
     cursor: pointer;
     line-height: 1;
     z-index: 2;
+    margin: 0 !important;
 }
 .top-notification .progress-bar {
     position: absolute;

@@ -445,6 +445,9 @@ body.dark-mode .status-button.status-final-ignorar, body.light-mode .status-butt
   color: #888;
   font-size: 0.98em;
   vertical-align: middle;
+  display: inline-block;
+  white-space: nowrap;
+  min-width: 7ch; /* suficiente para 7 caracteres */
 }
 
 /* Grid de 3x2 para los selectores rápidos */
@@ -487,13 +490,14 @@ body.light-mode .top-notification {
 }
 .top-notification .close-btn {
     position: absolute;
-    top: 8px;
-    right: 10px;
+    top: 4px;
+    right: 8px;
     background: transparent;
     border: none;
     color: inherit;
-    font-size: 20px;
+    font-size: 22px;
     cursor: pointer;
+    line-height: 1;
 }
 .top-notification .progress-bar {
     position: absolute;
@@ -510,4 +514,11 @@ body.light-mode .top-notification {
     height: 100%;
     width: 100%;
     background: #FF9800; /* mismo color que Final (ignorar) */
+    will-change: width;
+}
+
+/* nota al lado del combo de num-subjects */
+.combo-note {
+    margin-left: 10px;
+    font-weight: 600;
 }

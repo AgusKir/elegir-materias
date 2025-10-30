@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
         close.setAttribute('aria-label', 'Cerrar');
         close.textContent = '×';
         close.onclick = () => {
-            if (timer) clearInterval(timer);
+            if (rafId) cancelAnimationFrame(rafId);
             notif.remove();
         };
         const progress = document.createElement('div');
@@ -76,18 +76,21 @@ document.addEventListener('DOMContentLoaded', function() {
         notif.appendChild(progress);
         document.body.appendChild(notif);
 
-        const start = Date.now();
+        const start = performance.now();
         const total = durationMs;
-        let timer = setInterval(() => {
-            const elapsed = Date.now() - start;
+        let rafId;
+        function tick(now) {
+            const elapsed = now - start;
             const remaining = Math.max(0, total - elapsed);
             const pct = (remaining / total) * 100;
             fill.style.width = pct + '%';
             if (remaining <= 0) {
-                clearInterval(timer);
                 notif.remove();
+                return;
             }
-        }, 100);
+            rafId = requestAnimationFrame(tick);
+        }
+        rafId = requestAnimationFrame(tick);
     }
 
     const resetButton = document.getElementById('reset-button');
@@ -157,10 +160,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Notificación al aprobar 3622 (Análisis Matemático I)
                     if (status === 'Aprobada' && id === '3622') {
                         if (!sessionStorage.getItem('notif-quick-select-shown')) {
-                            showTopNotification('Recordá que podés marcar al instante todas las materias de un año con las cajas que están abajo de la tabla', 15000);
+                            showTopNotification('Recordá que podés marcar al instante todas las materias de un año con las cajas que están abajo de la tabla :)', 15000);
                             sessionStorage.setItem('notif-quick-select-shown', '1');
                         } else {
-                            showTopNotification('Recordá que podés marcar al instante todas las materias de un año con las cajas que están abajo de la tabla', 15000);
+                            showTopNotification('Recordá que podés marcar al instante todas las materias de un año con las cajas que están abajo de la tabla :)', 15000);
                         }
                     }
                 };
@@ -239,6 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         initializeSubjectControls();
+        if (typeof actualizarContadoresMaterias === 'function') actualizarContadoresMaterias();
     }
     function getMateriasEstado(ids) {
         return ids.every(id => localStorage.getItem(`subject-status-${id}`) === 'Aprobada');
@@ -325,6 +329,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Llamar al actualizar contadores en cada cambio relevante
     subjectChecklist.addEventListener('change', actualizarContadoresMaterias);
+    quickPrimero.addEventListener('change', actualizarContadoresMaterias);
+    quickSegundo.addEventListener('change', actualizarContadoresMaterias);
+    quickTercero.addEventListener('change', actualizarContadoresMaterias);
+    quickCuarto.addEventListener('change', actualizarContadoresMaterias);
+    quickTransversales.addEventListener('change', actualizarContadoresMaterias);
     quickQuinto.addEventListener('change', actualizarContadoresMaterias);
     // También actualizar al hacer click en cualquier botón de estado
     subjectChecklist.addEventListener('click', function(e) {
@@ -338,6 +347,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     // Inicializar al cargar
     actualizarContadoresMaterias();
+
+    // Nota al lado del combo cuando es >= 7
+    const numSubjectsNote = document.getElementById('num-subjects-note');
+    function updateNumSubjectsNote() {
+        const v = parseInt(subjectCountDropdown.value, 10);
+        numSubjectsNote.textContent = v >= 7 ? '😱 ¡Mucha suerte!' : '';
+    }
+    subjectCountDropdown.addEventListener('change', updateNumSubjectsNote);
+    updateNumSubjectsNote();
 
     // Filtrar el string listado para eliminar materias ignoradas
     function filtrarListadoPorIds(listado, idsIgnorar) {

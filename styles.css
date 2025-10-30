@@ -447,13 +447,13 @@ body.dark-mode .status-button.status-final-ignorar, body.light-mode .status-butt
   vertical-align: middle;
   display: inline-block;
   white-space: nowrap;
-  min-width: 7ch; /* suficiente para 7 caracteres */
+  min-width: 9ch; /* más ancho para evitar saltos de línea */
 }
 
 /* Grid de 3x2 para los selectores rápidos */
 .quick-select-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(280px, 1fr));
     gap: 8px 24px;
     margin: 0 0 18px 0;
     padding-left: 12px; /* más padding para alinear visualmente con la tabla */
@@ -462,6 +462,7 @@ body.dark-mode .status-button.status-final-ignorar, body.light-mode .status-butt
     display: flex;
     align-items: center;
     justify-content: flex-start;
+    white-space: nowrap;
 }
 .quick-select-grid .quick-item label {
     display: flex;
@@ -488,16 +489,18 @@ body.light-mode .top-notification {
     background: #f2f4f6;
     color: #111;
 }
-.top-notification .close-btn {
+.top-notification > .close-btn {
     position: absolute;
-    top: 4px;
+    top: 6px;
     right: 8px;
+    bottom: auto;
     background: transparent;
     border: none;
     color: inherit;
     font-size: 22px;
     cursor: pointer;
     line-height: 1;
+    z-index: 2;
 }
 .top-notification .progress-bar {
     position: absolute;

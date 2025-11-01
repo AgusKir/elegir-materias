@@ -403,31 +403,38 @@ document.addEventListener('DOMContentLoaded', function() {
             planFiltrado.cargarMateriasDesdeTexto(listadoFiltrado, filteredSelected);
             planFiltrado.cargarNombresDesdeTexto(tabla_nombres);
             planFiltrado.calcularYGuardarLongitudes();
-            if (planFiltrado.datos_materias[3671]) {
+            // Solo ajustar 3671 si el cuatrimestre seleccionado es primero (1)
+            // Y agregar 3671 a materias sugeridas solo si el cuatrimestre es primero
+            if (planFiltrado.datos_materias[3671] && semester === 1) {
                 planFiltrado.ajustarCuatrimestre3671YPropagar(semester);
             }
             // Obtener resultados
             // Búsqueda robusta: incrementa el pedido hasta que la cantidad de sugeridas (no ignoradas) sea la correcta
             let pedido = subjectCount;
             let materias, fijasFiltradas, opcFiltradas;
-            while (true) {
-                materias = planFiltrado.materiasProximoCuatri(pedido);
-                // Filtra materias ignoradas de la visualización
-                fijasFiltradas = (materias.materias_fijas || []).filter(materia => {
-                    const id = getMateriaId(materia);
-                    return id === null || !finalIgnorarIds.includes(id);
-                });
-                opcFiltradas = (materias.materias_opcionales || []).filter(materia => {
-                    const id = getMateriaId(materia);
-                    return id === null || !finalIgnorarIds.includes(id);
-                });
-                if (fijasFiltradas.length + opcFiltradas.length >= subjectCount || pedido > subjectCount + 10) break;
-                pedido++;
-            }
             // Función robusta para extraer el ID de una materia string
             function getMateriaId(materiaStr) {
                 const match = materiaStr.match(/\((\d+)\)\s*$/);
                 return match ? parseInt(match[1]) : null;
+            }
+            while (true) {
+                materias = planFiltrado.materiasProximoCuatri(pedido);
+                // Filtra materias ignoradas de la visualización
+                // También filtrar 3671 si el cuatrimestre seleccionado NO es primero (1)
+                fijasFiltradas = (materias.materias_fijas || []).filter(materia => {
+                    const id = getMateriaId(materia);
+                    if (id === null) return !finalIgnorarIds.includes(null);
+                    if (id === 3671 && semester !== 1) return false; // No mostrar 3671 si no es primero
+                    return !finalIgnorarIds.includes(id);
+                });
+                opcFiltradas = (materias.materias_opcionales || []).filter(materia => {
+                    const id = getMateriaId(materia);
+                    if (id === null) return !finalIgnorarIds.includes(null);
+                    if (id === 3671 && semester !== 1) return false; // No mostrar 3671 si no es primero
+                    return !finalIgnorarIds.includes(id);
+                });
+                if (fijasFiltradas.length + opcFiltradas.length >= subjectCount || pedido > subjectCount + 10) break;
+                pedido++;
             }
             // Mostrar resultados
             resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:<span class="help-icon" title="Placeholder">ⓘ</span></h3>';
@@ -450,7 +457,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const materiasDisponibles = planFiltrado.puedoCursarEnCuatri(1);
             const materiasDisponiblesFiltradas = (materiasDisponibles || []).filter(materia => {
                 const id = getMateriaId(materia);
-                return id === null || !finalIgnorarIds.includes(id);
+                if (id === null) return !finalIgnorarIds.includes(null);
+                if (id === 3671 && semester !== 1) return false; // No mostrar 3671 si no es primero
+                return !finalIgnorarIds.includes(id);
             });
             if (materiasDisponiblesFiltradas.length > 0) {
                 resultsDiv.innerHTML += '<h3>Todas las materias que podrías cursar:</h3>';

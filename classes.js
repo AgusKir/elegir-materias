@@ -169,39 +169,50 @@ class PlanDeEstudios {
                         const materia = this.materias[id];
                         let puedePostergarse = true;
                         
-                        // Verificar prerrequisitos: si algún prereq está relacionado con 3671, no puede postergarse
+                        // Verificar prerrequisitos pendientes
                         for (const prereqId of materia.anteriores) {
                             if (this.materias[prereqId]) {
+                                // El prereq está pendiente
                                 const prereqTiene3671Adelante = this.esAlcanzableDesde(prereqId, 3671);
                                 if (prereqTiene3671Adelante) {
+                                    // El prereq está relacionado con 3671, así que esta materia NO puede postergarse
                                     puedePostergarse = false;
                                     break;
                                 }
+                                // Si el prereq NO está relacionado con 3671, entonces ambos pueden potencialmente postergarse juntos
+                                // Pero necesitamos verificar que el prereq también puede postergarse (no tiene dependientes que lo impidan)
+                                // Por ahora, si el prereq no está relacionado con 3671, asumimos que pueden moverse juntos
                             }
                         }
                         
-                        // Verificar dependientes (posteriores): si tiene un dependiente que NO está relacionado con 3671,
+                        // Verificar dependientes (posteriores): si tiene un dependiente pendiente que NO está relacionado con 3671,
                         // entonces esta materia NO puede postergarse porque necesita estar lista para que el dependiente
                         // se haga en el segundo cuatrimestre
                         // Ejemplo: 911 -> 912, si 912 no está relacionado con 3671, entonces 911 debe estar en primero
                         // para que 912 pueda estar en segundo
+                        // IMPORTANTE: Solo consideramos dependientes que están en el grafo (pendientes), no los completados
                         if (puedePostergarse) {
+                            let tieneDependientesPendientesNoRelacionados = false;
                             for (const dependienteId of materia.posteriores) {
                                 if (this.materias[dependienteId]) {
-                                    // El dependiente está pendiente
+                                    // El dependiente está pendiente (en el grafo)
                                     const dependienteTiene3671Adelante = this.esAlcanzableDesde(dependienteId, 3671);
                                     if (!dependienteTiene3671Adelante) {
                                         // El dependiente tampoco está relacionado con 3671
                                         // Esto significa que esta materia debe hacerse primero para que el dependiente
                                         // pueda hacerse después, por lo tanto NO puede postergarse
-                                        puedePostergarse = false;
+                                        tieneDependientesPendientesNoRelacionados = true;
                                         break;
                                     }
                                 }
                             }
+                            if (tieneDependientesPendientesNoRelacionados) {
+                                puedePostergarse = false;
+                            }
                         }
                         
-                        // Solo postergar si no tiene prerequisitos relacionados con 3671 Y no tiene dependientes no relacionados
+                        // Solo postergar si: no tiene prerequisitos relacionados con 3671 Y
+                        // (no tiene dependientes pendientes O todos sus dependientes están relacionados con 3671)
                         if (puedePostergarse) {
                             this.datos_materias[id].valor_corchete += 1;
                         }
@@ -354,6 +365,8 @@ class PlanDeEstudios {
             
             // Verificar que la materia esté en el grafo (disponible)
             if (!this.materias[id]) continue;
+            
+            // 3671 se manejará en main.js basado en el semester seleccionado
             
             // Verificar que todas las prerrequisitos estén satisfechas
             // (si la materia tiene prerrequisitos que están en el grafo, no puede ser tomada aún)

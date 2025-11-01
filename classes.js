@@ -102,7 +102,7 @@ class PlanDeEstudios {
         return false;
     }
 
-    cuatrisMinimosHastaRecibirse() {
+    cuatrisMinimosHastaRecibirse(semester = null) {
         // Calcular el camino más largo general (incluyendo todos los caminos)
         const caminoMasLargoGeneral = this.encontrarCaminoMasLargo();
         const longitudGeneral = caminoMasLargoGeneral.length;
@@ -118,8 +118,18 @@ class PlanDeEstudios {
             }
             
             // Si no, comparar con el camino hasta 3671
-            // El cuatrisMinimos es el máximo entre el camino general y el camino hasta 3671
-            return Math.max(longitudGeneral, longitudHasta3671);
+            // IMPORTANTE: Si el semester es "Segundo" (2), 3671 no puede empezar hasta el siguiente año
+            // por lo que efectivamente toma 3 semestres desde ahora (siguiente Primero + siguiente Segundo + año siguiente Primero para terminar)
+            // Por lo tanto, si el semester es "Segundo", debemos considerar que 3671 efectivamente tiene longitud +2
+            let longitudEfectivaHasta3671 = longitudHasta3671;
+            if (semester !== null && semester !== undefined && parseInt(semester) === 2) {
+                // En Segundo, 3671 solo puede empezar en el siguiente año, así que efectivamente toma 3 semestres
+                // desde ahora: siguiente Primero (inicio), siguiente Segundo (continúa), año siguiente Primero (termina)
+                longitudEfectivaHasta3671 = Math.max(longitudEfectivaHasta3671, 3);
+            }
+            
+            // El cuatrisMinimos es el máximo entre el camino general y el camino efectivo hasta 3671
+            return Math.max(longitudGeneral, longitudEfectivaHasta3671);
         }
         
         // Si 3671 no está presente, usar el camino más largo general
@@ -128,7 +138,7 @@ class PlanDeEstudios {
 
     calcularYGuardarLongitudes(semester = null) {
         this.datos_materias = {};
-        const cuatrisMinimos = this.cuatrisMinimosHastaRecibirse();
+        const cuatrisMinimos = this.cuatrisMinimosHastaRecibirse(semester);
         const longitudes = {};
 
         // Calcular longitudes

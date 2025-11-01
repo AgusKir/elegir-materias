@@ -133,8 +133,10 @@ class PlanDeEstudios {
                     const cantMateriasDespues = this.encontrarCaminoMasLargoDesde(id_materia).length - 1;
                     
                     // Determine effective cuatrisMinimos for this subject
-                    // If 3671 exists and this subject leads to it, use cuatrisMinimosBase
-                    // Otherwise, add 1 to account for independent path
+                    // Subject 3671 (Proyecto Final) spans two semesters, so when it's in the longest path:
+                    // - Subjects that lead to 3671 use cuatrisMinimosBase
+                    // - Subjects NOT leading to 3671 get +1 to account for the extra semester
+                    //   that 3671 adds to the graduation timeline
                     let cuatrisMinimos = cuatrisMinimosBase;
                     if (this.materias[3671]) {
                         const tiene3671Adelante = this.esAlcanzableDesde(id_materia, 3671);
@@ -162,9 +164,9 @@ class PlanDeEstudios {
         if (this.datos_materias[3671]) {
             const valorCorchete3671 = this.datos_materias[3671].valor_corchete;
             
-            // For subjects leading to 3671, use cuatrisMinimosBase
-            // For others, cuatrisMinimos is already adjusted (+1)
-            // So no additional adjustment needed here
+            // Note: No additional adjustment needed here. The logic above already handles
+            // the dual-semester nature of 3671 correctly by adjusting cuatrisMinimos based
+            // on whether each subject leads to 3671 or not.
         }
     }
 

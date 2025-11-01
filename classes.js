@@ -199,6 +199,9 @@ class PlanDeEstudios {
                 if (this.datos_materias[3671].valor_corchete_original !== undefined) {
                     this.datos_materias[3671].valor_corchete_original = valorCorcheteAjustado;
                 }
+                // Actualizar cuatrimestre para que coincida con el nuevo valor_corchete
+                // Esto asegura que la condición de readiness funcione correctamente
+                this.datos_materias[3671].cuatrimestre = valorCorcheteAjustado;
             }
         }
         

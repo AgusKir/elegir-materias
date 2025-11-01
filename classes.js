@@ -62,6 +62,16 @@ class PlanDeEstudios {
         return [id_materia, ...caminoMaximo];
     }
 
+    // Count subjects in path, accounting for 3671 taking 2 semesters (only when considering semester parity)
+    contarSemestresEnCamino(camino, accountFor3671 = true) {
+        let count = camino.length;
+        // Add 1 if 3671 is in the path (since it takes 2 semesters instead of 1)
+        if (accountFor3671 && camino.includes(3671)) {
+            count += 1;
+        }
+        return count;
+    }
+
     encontrarCaminoMasLargo() {
         let caminoMaximo = [];
         for (const id_materia in this.materias) {
@@ -105,11 +115,42 @@ class PlanDeEstudios {
     cuatrisMinimosHastaRecibirse(semester = null) {
         // Calcular el camino más largo general (incluyendo todos los caminos)
         const caminoMasLargoGeneral = this.encontrarCaminoMasLargo();
-        const longitudGeneral = caminoMasLargoGeneral.length;
+        let semestres = caminoMasLargoGeneral.length;
         
-        // Simply return the length of the longest path
-        // The adjustment for subjects not leading to 3671 will be done in calcularYGuardarLongitudes
-        return longitudGeneral;
+        // Only account for 3671 taking 2 semesters when semester parity is being considered
+        if (semester !== null && this.materias[3671]) {
+            // Account for 3671 taking 2 semesters instead of 1
+            semestres = this.contarSemestresEnCamino(caminoMasLargoGeneral, true);
+            
+            // Additional adjustment for 3671's semester parity constraint
+            // 3671 can only start in Primero (odd semesters: 1, 3, 5, ...)
+            if (semester === 1) {
+                // Find the path to 3671 (prerequisites)
+                const caminoHasta3671 = this.encontrarCaminoMasLargoHasta(3671);
+                // The path includes 3671, so we need to count semesters for prerequisites only
+                // Remove 3671 from the path first
+                const prerequisitosPath = caminoHasta3671.filter(id => id !== 3671);
+                const semestresPrerequisitos = this.contarSemestresEnCamino(prerequisitosPath, false);
+                
+                // If prerequisites end in an odd semester (Primero), we need to wait for the next Primero
+                // which adds 1 more semester
+                if (semestresPrerequisitos % 2 === 1) {
+                    // Prerequisites end in Primero (semester 1, 3, 5, ...)
+                    // 3671 must start in the NEXT Primero, so we need to add 1 semester gap
+                    // Total: prereqs + gap + 2 (for 3671)
+                    const totalWith3671 = semestresPrerequisitos + 1 + 2;
+                    semestres = Math.max(semestres, totalWith3671);
+                } else {
+                    // Prerequisites end in Segundo (even semester)
+                    // 3671 can start in the next semester (which is Primero)
+                    // Total: prereqs + 2 (for 3671)
+                    const totalWith3671 = semestresPrerequisitos + 2;
+                    semestres = Math.max(semestres, totalWith3671);
+                }
+            }
+        }
+        
+        return semestres;
     }
 
     calcularYGuardarLongitudes(semester = null) {
@@ -129,16 +170,24 @@ class PlanDeEstudios {
             .sort((a, b) => b - a)
             .forEach(longitud => {
                 longitudes[longitud].forEach(id_materia => {
-                    const cantMateriasAntes = this.encontrarCaminoMasLargoHasta(id_materia).length - 1;
-                    const cantMateriasDespues = this.encontrarCaminoMasLargoDesde(id_materia).length - 1;
+                    let cantMateriasAntes, cantMateriasDespues;
+                    
+                    if (semester !== null) {
+                        // When semester is specified, count semesters accounting for 3671 taking 2 semesters
+                        const caminoHasta = this.encontrarCaminoMasLargoHasta(id_materia);
+                        const caminoDesde = this.encontrarCaminoMasLargoDesde(id_materia);
+                        cantMateriasAntes = this.contarSemestresEnCamino(caminoHasta, true) - 1;
+                        cantMateriasDespues = this.contarSemestresEnCamino(caminoDesde, true) - 1;
+                    } else {
+                        // When semester is not specified, use old approach (count subjects, not semesters)
+                        cantMateriasAntes = this.encontrarCaminoMasLargoHasta(id_materia).length - 1;
+                        cantMateriasDespues = this.encontrarCaminoMasLargoDesde(id_materia).length - 1;
+                    }
                     
                     // Determine effective cuatrisMinimos for this subject
-                    // Subject 3671 (Proyecto Final) spans two semesters, so when it's in the longest path:
-                    // - Subjects that lead to 3671 use cuatrisMinimosBase
-                    // - Subjects NOT leading to 3671 get +1 to account for the extra semester
-                    //   that 3671 adds to the graduation timeline
+                    // When semester is not specified, use the old adjustment logic
                     let cuatrisMinimos = cuatrisMinimosBase;
-                    if (this.materias[3671]) {
+                    if (semester === null && this.materias[3671]) {
                         const tiene3671Adelante = this.esAlcanzableDesde(id_materia, 3671);
                         if (!tiene3671Adelante) {
                             cuatrisMinimos = cuatrisMinimosBase + 1;

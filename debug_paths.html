@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Paths</title>
+</head>
+<body>
+    <h1>Debug all paths</h1>
+    <pre id="output"></pre>
+    
+    <script src="classes.js"></script>
+    <script>
+        const allSubjectIds = [
+            3621, 3622, 3623, 3624, 3625, 3626, 3627, 3628, 3629, 3630,
+            3631, 3632, 3633, 3634, 3635, 3636, 3637, 3638, 3639, 3640,
+            3641, 3642, 3643, 3644, 3645, 3646, 3647, 3648, 3649, 3650,
+            3651, 3652, 3653, 3654, 3655, 3656, 3657, 3658, 3659, 3660,
+            3661, 3662, 3663, 3664, 3665, 3666, 3668, 3669, 3670,
+            3675, 3676, 3677, 3678, 3679, 3680,
+            901, 902, 903, 904, 911, 912
+        ];
+        
+        const notCompleted = [901, 902, 903, 904, 3667, 3671];
+        const completedSubjects = allSubjectIds.filter(id => !notCompleted.includes(id));
+        
+        const plan = new PlanDeEstudios();
+        plan.cargarMateriasDesdeTexto(listado, completedSubjects);
+        plan.cargarNombresDesdeTexto(tabla_nombres);
+        
+        let output = 'All paths from each starting subject:\n';
+        output += '===================================\n\n';
+        
+        for (const id in plan.materias) {
+            if (plan.materias[id].anteriores.size === 0) {
+                const camino = plan.encontrarCaminoMasLargoDesde(parseInt(id));
+                const semestres = plan.contarSemestresEnCamino(camino);
+                output += `From ${id}: ${camino.join('->')} (${camino.length} subjects, ${semestres} semesters)\n`;
+            }
+        }
+        
+        output += '\nLongest path:\n';
+        const longestPath = plan.encontrarCaminoMasLargo();
+        const longestSemesters = plan.contarSemestresEnCamino(longestPath);
+        output += `${longestPath.join('->')} (${longestPath.length} subjects, ${longestSemesters} semesters)\n`;
+        
+        output += '\ncuatrisMinimosHastaRecibirse: ' + plan.cuatrisMinimosHastaRecibirse() + '\n';
+        
+        document.getElementById('output').textContent = output;
+    </script>
+</body>
+</html>

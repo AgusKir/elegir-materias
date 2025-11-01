@@ -103,12 +103,35 @@ class PlanDeEstudios {
     }
 
     cuatrisMinimosHastaRecibirse() {
-        // Si 3671 está presente, el tiempo mínimo hasta recibirse se basa en el camino hasta 3671,
-        // no en cadenas no relacionadas (como 911→912)
+        // Si 3671 está presente, el tiempo mínimo hasta recibirse se basa en el camino hasta 3671
+        // PERO 3671 ocupa DOS cuatrimestres, así que necesitamos considerar eso
         if (this.materias[3671]) {
             const caminoHasta3671 = this.encontrarCaminoMasLargoHasta(3671);
             if (caminoHasta3671.length > 0) {
-                return caminoHasta3671.length;
+                // 3671 ocupa 2 cuatrimestres, así que el camino efectivo es longitud + 1
+                // Además, necesitamos considerar si hay cadenas de prerrequisitos no relacionadas
+                // que también requieren tiempo (como 911→912)
+                const longitudHasta3671 = caminoHasta3671.length;
+                
+                // Buscar el camino más largo que NO llega a 3671 (cadenas independientes)
+                let maxLongitudIndependiente = 0;
+                for (const id_materia in this.materias) {
+                    const id = parseInt(id_materia);
+                    if (id === 3671) continue;
+                    // Verificar si esta materia NO tiene a 3671 en su camino hacia adelante
+                    if (!this.esAlcanzableDesde(id, 3671)) {
+                        const longitudDesde = this.encontrarCaminoMasLargoDesde(id).length;
+                        if (longitudDesde > maxLongitudIndependiente) {
+                            maxLongitudIndependiente = longitudDesde;
+                        }
+                    }
+                }
+                
+                // El tiempo mínimo es el máximo entre:
+                // 1. El camino hasta 3671 (pero 3671 ocupa 2 cuatrimestres, así que +1 efectivamente)
+                // 2. Las cadenas independientes que no llevan a 3671
+                // Usamos el mayor, pero si 3671 está presente, debemos considerar que ocupa 2 cuatrimestres
+                return Math.max(longitudHasta3671, maxLongitudIndependiente);
             }
         }
         // Si 3671 no está presente, usar el camino más largo general

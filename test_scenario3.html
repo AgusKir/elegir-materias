@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Scenario 3</title>
+</head>
+<body>
+    <h1>Testing valor_corchete calculation - 3667 scenario</h1>
+    <pre id="output"></pre>
+    
+    <script src="classes.js"></script>
+    <script>
+        // Test setup: all subjects except 901, 902, 903, 904, 3667, and 3671
+        const allSubjects = [];
+        for (let id = 3621; id <= 3680; id++) {
+            if (![3667, 3671].includes(id)) {
+                allSubjects.push(id);
+            }
+        }
+        allSubjects.push(911, 912);
+        
+        const completedSubjects = allSubjects;
+        
+        const plan = new PlanDeEstudios();
+        plan.cargarMateriasDesdeTexto(listado, completedSubjects);
+        plan.cargarNombresDesdeTexto(tabla_nombres);
+        plan.calcularYGuardarLongitudes(1);  // semester = 1 (Primero)
+        
+        // Expected results
+        const expected = {
+            901: 1,
+            3667: 2  // Should appear with valor_corchete = 2
+        };
+        
+        // Get actual results
+        let output = 'Subject | Expected | Actual | Match?\n';
+        output += '--------|----------|--------|-------\n';
+        
+        for (const [id, expectedValue] of Object.entries(expected)) {
+            const actual = plan.datos_materias[id];
+            const actualValue = actual ? actual.valor_corchete : 'N/A';
+            const match = actualValue === expectedValue ? '✓' : '✗';
+            output += `${id.padEnd(7)} | ${String(expectedValue).padEnd(8)} | ${String(actualValue).padEnd(6)} | ${match}\n`;
+        }
+        
+        output += '\n\nAll remaining subjects:\n';
+        output += 'ID    | Name                                           | valor_corchete | cuatrimestre\n';
+        output += '------|------------------------------------------------|----------------|-------------\n';
+        
+        const sortedSubjects = Object.entries(plan.datos_materias)
+            .filter(([id]) => plan.materias[id])
+            .sort((a, b) => a[1].valor_corchete - b[1].valor_corchete);
+        
+        for (const [id, data] of sortedSubjects) {
+            const nombre = plan.materias[id].nombre || '';
+            output += `${id.padEnd(5)} | ${nombre.padEnd(46)} | ${String(data.valor_corchete).padEnd(14)} | ${data.cuatrimestre}\n`;
+        }
+        
+        document.getElementById('output').textContent = output;
+    </script>
+</body>
+</html>

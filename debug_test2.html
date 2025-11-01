@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Test 2</title>
+</head>
+<body>
+    <h1>Debug - checking path lengths and calculations</h1>
+    <pre id="output"></pre>
+    
+    <script src="classes.js"></script>
+    <script>
+        const completedSubjects = [
+            3621, 3622, 3623, 3624, 3625, 3626, 3627, 3628, 3629, 3630,
+            3631, 3632, 3633, 3634, 3635, 3636, 3637, 3638, 3639, 3640,
+            3642, 3643, 3645, 3649, 3651, 901, 902, 911, 912
+        ];
+        
+        const plan = new PlanDeEstudios();
+        plan.cargarMateriasDesdeTexto(listado, completedSubjects);
+        plan.cargarNombresDesdeTexto(tabla_nombres);
+        
+        let output = 'Before calcularYGuardarLongitudes:\n\n';
+        const subjects = [3644, 3650, 3647, 3648, 3654];
+        
+        output += 'ID   | PathTo (len) | PathFrom (len) | SemCount To | SemCount From\n';
+        output += '-----|--------------|----------------|-------------|---------------\n';
+        
+        for (const id of subjects) {
+            const pathTo = plan.encontrarCaminoMasLargoHasta(id);
+            const pathFrom = plan.encontrarCaminoMasLargoDesde(id);
+            const semTo = plan.contarSemestresEnCamino(pathTo, true);
+            const semFrom = plan.contarSemestresEnCamino(pathFrom, true);
+            output += `${String(id).padEnd(4)} | ${String(pathTo.length).padEnd(12)} | ${String(pathFrom.length).padEnd(14)} | ${String(semTo).padEnd(11)} | ${semFrom}\n`;
+            output += `     PathTo: ${pathTo.join(' -> ')}\n`;
+            output += `     PathFrom: ${pathFrom.join(' -> ')}\n\n`;
+        }
+        
+        output += '\ncuatrisMinimosHastaRecibirse(null) = ' + plan.cuatrisMinimosHastaRecibirse(null) + '\n';
+        output += 'cuatrisMinimosHastaRecibirse(2) = ' + plan.cuatrisMinimosHastaRecibirse(2) + '\n\n';
+        
+        // Now with semester
+        plan.calcularYGuardarLongitudes(2);
+        
+        output += '\nAfter calcularYGuardarLongitudes(2):\n\n';
+        output += 'ID   | cuatrimestre | valor_corchete | cantAntes | cantDespues | cuatMin used\n';
+        output += '-----|--------------|----------------|-----------|-------------|--------------\n';
+        
+        for (const id of subjects) {
+            const datos = plan.datos_materias[id];
+            const pathTo = plan.encontrarCaminoMasLargoHasta(id);
+            const pathFrom = plan.encontrarCaminoMasLargoDesde(id);
+            const cantAntes = plan.contarSemestresEnCamino(pathTo, true) - 1;
+            const cantDespues = plan.contarSemestresEnCamino(pathFrom, true) - 1;
+            const tiene3671Adelante = plan.esAlcanzableDesde(id, 3671);
+            output += `${String(id).padEnd(4)} | ${String(datos.cuatrimestre).padEnd(12)} | ${String(datos.valor_corchete).padEnd(14)} | ${String(cantAntes).padEnd(9)} | ${String(cantDespues).padEnd(11)} | has3671=${tiene3671Adelante}\n`;
+        }
+        
+        document.getElementById('output').textContent = output;
+    </script>
+</body>
+</html>

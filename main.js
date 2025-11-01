@@ -402,7 +402,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const planFiltrado = new PlanDeEstudios();
             planFiltrado.cargarMateriasDesdeTexto(listadoFiltrado, filteredSelected);
             planFiltrado.cargarNombresDesdeTexto(tabla_nombres);
-            planFiltrado.calcularYGuardarLongitudes();
+            planFiltrado.calcularYGuardarLongitudes(semester);
             // Solo ajustar 3671 si el cuatrimestre seleccionado es primero (1)
             // Y agregar 3671 a materias sugeridas solo si el cuatrimestre es primero
             if (planFiltrado.datos_materias[3671] && semester === 1) {

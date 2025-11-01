@@ -116,7 +116,7 @@ class PlanDeEstudios {
         return this.encontrarCaminoMasLargo().length;
     }
 
-    calcularYGuardarLongitudes() {
+    calcularYGuardarLongitudes(semester = null) {
         this.datos_materias = {};
         const cuatrisMinimos = this.cuatrisMinimosHastaRecibirse();
         const longitudes = {};
@@ -253,8 +253,12 @@ class PlanDeEstudios {
                         }
                         
                         // Solo postergar si no tiene dependientes no relacionados ni prerequisitos relacionados con 3671
+                        // El ajuste depende del cuatrimestre seleccionado:
+                        // - Si es "Primero" (1): +1 (3671 ocupará Primero y Segundo del mismo año)
+                        // - Si es "Segundo" (2): +2 (3671 ocupará Primero y Segundo del año siguiente)
                         if (puedePostergarse) {
-                            this.datos_materias[id].valor_corchete += 1;
+                            const ajuste = (semester === 2) ? 2 : 1;
+                            this.datos_materias[id].valor_corchete += ajuste;
                         }
                     }
                 }

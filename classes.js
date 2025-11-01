@@ -202,6 +202,9 @@ class PlanDeEstudios {
                             if (this.datos_materias[id].valor_corchete_original !== undefined) {
                                 this.datos_materias[id].valor_corchete_original += ajusteNecesario;
                             }
+                            // Actualizar cuatrimestre para que coincida con el nuevo valor_corchete
+                            // Si valor_corchete es 1, entonces cuatrimestre también debe ser 1
+                            this.datos_materias[id].cuatrimestre = this.datos_materias[id].valor_corchete;
                         }
                     }
                 }

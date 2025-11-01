@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Scenario</title>
+</head>
+<body>
+    <h1>Debugging valor_corchete calculation</h1>
+    <pre id="output"></pre>
+    
+    <script src="classes.js"></script>
+    <script>
+        // Test setup from the issue
+        const completedSubjects = [
+            3621, 3622, 3623, 3624, 3625, 3626, 3627, 3628, 3629, 3630,
+            3631, 3632, 3633, 3634, 3635, 3636, 3637, 3638, 3639, 3640,
+            3642, 3643, 3645, 3649, 3651, 901, 902, 911, 912
+        ];
+        
+        const plan = new PlanDeEstudios();
+        plan.cargarMateriasDesdeTexto(listado, completedSubjects);
+        plan.cargarNombresDesdeTexto(tabla_nombres);
+        
+        // Debug: check longest path before calculation
+        const longestPath = plan.encontrarCaminoMasLargo();
+        let output = 'Longest path: ' + longestPath.map(id => `${id} (${plan.materias[id].nombre})`).join(' -> ') + '\n';
+        output += 'Longest path length: ' + longestPath.length + '\n\n';
+        
+        // Check if 3671 exists
+        output += '3671 exists in graph: ' + (plan.materias[3671] ? 'Yes' : 'No') + '\n';
+        if (plan.materias[3671]) {
+            const pathTo3671 = plan.encontrarCaminoMasLargoHasta(3671);
+            output += 'Path to 3671: ' + pathTo3671.map(id => `${id}`).join(' -> ') + '\n';
+            output += 'Path to 3671 length: ' + pathTo3671.length + '\n';
+            
+            const pathFrom3671 = plan.encontrarCaminoMasLargoDesde(3671);
+            output += 'Path from 3671: ' + pathFrom3671.map(id => `${id}`).join(' -> ') + '\n';
+            output += 'Path from 3671 length: ' + pathFrom3671.length + '\n';
+        }
+        
+        output += '\ncuatrisMinimosHastaRecibirse: ' + plan.cuatrisMinimosHastaRecibirse() + '\n\n';
+        
+        // Now calculate
+        plan.calcularYGuardarLongitudes();
+        
+        output += 'After calculation:\n';
+        output += '3671 valor_corchete: ' + (plan.datos_materias[3671] ? plan.datos_materias[3671].valor_corchete : 'N/A') + '\n';
+        output += '3671 cuatrimestre: ' + (plan.datos_materias[3671] ? plan.datos_materias[3671].cuatrimestre : 'N/A') + '\n\n';
+        
+        // Check some specific subjects
+        const subjectsToCheck = [3644, 3650, 3647, 3648, 3654, 3641, 3646, 3656, 903, 3662, 3675, 3676];
+        output += 'Subject details:\n';
+        output += 'ID   | Before | After | cuatrimestre\n';
+        for (const id of subjectsToCheck) {
+            if (plan.datos_materias[id]) {
+                const data = plan.datos_materias[id];
+                const pathBefore = plan.encontrarCaminoMasLargoHasta(id).length - 1;
+                const pathAfter = plan.encontrarCaminoMasLargoDesde(id).length - 1;
+                output += `${id} | ${pathBefore}      | ${pathAfter}     | ${data.cuatrimestre}\n`;
+            }
+        }
+        
+        document.getElementById('output').textContent = output;
+    </script>
+</body>
+</html>

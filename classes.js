@@ -249,12 +249,14 @@ class PlanDeEstudios {
                             let tieneDependientesNoRelacionados = false;
                             
                             // Encontrar el mínimo valor_corchete entre sus dependientes no relacionados
+                            // IMPORTANTE: Usar el valor_corchete ya ajustado en PASO 1
                             for (const dependienteId of materia.posteriores) {
                                 if (this.materias[dependienteId]) {
                                     const dependienteTiene3671Adelante = this.esAlcanzableDesde(dependienteId, 3671);
                                     if (!dependienteTiene3671Adelante) {
                                         // El dependiente no está relacionado con 3671
                                         tieneDependientesNoRelacionados = true;
+                                        // Usar valor_corchete (ya ajustado en PASO 1), no valor_corchete_original
                                         const valorCorcheteDependiente = this.datos_materias[dependienteId].valor_corchete;
                                         if (valorCorcheteDependiente < minValorCorcheteDependientes) {
                                             minValorCorcheteDependientes = valorCorcheteDependiente;
@@ -264,8 +266,16 @@ class PlanDeEstudios {
                             }
                             
                             // Si tiene dependientes no relacionados, su valor_corchete debe ser uno menos
+                            // que el mínimo valor_corchete de sus dependientes
+                            // Pero si el valor resultante sería menor que 1, asegurarse de que sea al menos 1
+                            // porque necesita estar disponible en el primer cuatrimestre disponible
                             if (tieneDependientesNoRelacionados && minValorCorcheteDependientes !== Infinity) {
-                                const valorCorcheteDeseado = minValorCorcheteDependientes - 1;
+                                // El valor deseado es uno menos que el dependiente, pero al menos 1
+                                let valorCorcheteDeseado = minValorCorcheteDependientes - 1;
+                                // Si el dependiente tiene valor_corchete 1 o menos, este debe ser 1
+                                if (valorCorcheteDeseado < 1) {
+                                    valorCorcheteDeseado = 1;
+                                }
                                 // Comparar con valor_corchete actual (no solo si es menor)
                                 if (this.datos_materias[id].valor_corchete !== valorCorcheteDeseado) {
                                     // Ajustar para que tenga el valor_corchete correcto

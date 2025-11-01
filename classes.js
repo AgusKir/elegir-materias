@@ -395,12 +395,11 @@ class PlanDeEstudios {
                         }
                     }
                 }
-            }
-            
-            // PASO 3: Ajustar prerrequisitos de 3671
-            // Como 3671 ocupa 2 semestres, sus prerrequisitos deben completarse 1 semestre antes
-            // para asegurar que 3671 pueda empezar a tiempo
-            if (this.materias[3671]) {
+                
+                // PASO 3: Ajustar prerrequisitos de 3671
+                // Como 3671 ocupa 2 semestres, sus prerrequisitos deben completarse 1 semestre antes
+                // para asegurar que 3671 pueda empezar a tiempo
+                // IMPORTANTE: Solo ajustar si 3671 está en el camino crítico (ya estamos dentro del if que verifica esto)
                 const materia3671 = this.materias[3671];
                 for (const prereqId of materia3671.anteriores) {
                     if (this.materias[prereqId] && this.datos_materias[prereqId]) {

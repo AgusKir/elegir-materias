@@ -79,6 +79,7 @@ class PlanDeEstudios {
         if (id_origen === id_destino) return true;
         
         // Usar DFS para verificar si id_destino es alcanzable desde id_origen
+        // Solo seguir rutas a través de materias que existen en el grafo actual
         const visitados = new Set();
         const stack = [id_origen];
         visitados.add(id_origen);
@@ -89,7 +90,8 @@ class PlanDeEstudios {
             
             if (this.materias[actual]) {
                 for (const posterior of this.materias[actual].posteriores) {
-                    if (!visitados.has(posterior)) {
+                    // Solo seguir si el posterior también existe en el grafo
+                    if (this.materias[posterior] && !visitados.has(posterior)) {
                         visitados.add(posterior);
                         stack.push(posterior);
                     }
@@ -147,9 +149,13 @@ class PlanDeEstudios {
             // Si 3671 tiene el máximo (o está empatado)
             if (valorCorchete3671 === maxValorCorchete) {
                 // Encontrar todas las materias que NO tienen a 3671 en su camino hacia adelante
+                // Solo considerar materias que están en el grafo actual (no completadas)
                 for (const id_materia in this.datos_materias) {
                     const id = parseInt(id_materia);
                     if (id === 3671) continue; // No modificar 3671 a sí mismo
+                    
+                    // Solo procesar si la materia está en el grafo actual
+                    if (!this.materias[id]) continue;
                     
                     // Verificar si 3671 es alcanzable desde esta materia (usando búsqueda exhaustiva)
                     const tiene3671Adelante = this.esAlcanzableDesde(id, 3671);

@@ -239,33 +239,17 @@ class PlanDeEstudios {
         if (this.datos_materias[3671]) {
             const valorCorchete3671 = this.datos_materias[3671].valor_corchete;
             
-            // Verificar que 3671 realmente afecta cuatrisMinimos usando la misma lógica que cuatrisMinimosHastaRecibirse
-            // Si cuatrisMinimosHastaRecibirse devuelve un valor diferente cuando 3671 está presente vs cuando no,
-            // entonces 3671 afecta cuatrisMinimos y PASO 3 debe ejecutarse
+            // Calcular cuatrisMinimos con 3671 (ya lo tenemos calculado arriba)
+            const cuatrisMinimosCon3671 = cuatrisMinimos;
+            
+            // Calcular cuatrisMinimos sin 3671: simplemente la longitud del camino más largo general
+            // (sin considerar ajustes de 3671)
             const caminoMasLargo = this.encontrarCaminoMasLargo();
             const longitudCaminoMasLargo = caminoMasLargo.length;
-            const longitudHasta3671 = this.encontrarCaminoMasLargoHasta(3671).length;
-            // Usar la misma lógica que cuatrisMinimosHastaRecibirse para determinar si 3671 afecta cuatrisMinimos
-            const estaEnCaminoCritico = caminoMasLargo.includes(3671) || longitudHasta3671 >= longitudCaminoMasLargo;
-            
-            // Verificar que 3671 realmente afecta cuatrisMinimos comparando con cuatrisMinimos sin 3671
-            // Solo ejecutar PASO 3 si 3671 realmente incrementa cuatrisMinimos
             const cuatrisMinimosSin3671 = longitudCaminoMasLargo;
-            // Calcular cuánto sería cuatrisMinimos con 3671 (usando la lógica de cuatrisMinimosHastaRecibirse)
-            let cuatrisMinimosCon3671 = cuatrisMinimosSin3671;
-            if (estaEnCaminoCritico) {
-                if (caminoMasLargo.includes(3671)) {
-                    cuatrisMinimosCon3671 = longitudCaminoMasLargo + (semester !== null && semester !== undefined && parseInt(semester) === 2 ? 1 : 2);
-                } else {
-                    // longitudHasta3671 >= longitudCaminoMasLargo
-                    if (semester !== null && semester !== undefined && parseInt(semester) === 2) {
-                        cuatrisMinimosCon3671 = Math.max(longitudCaminoMasLargo, Math.max(longitudHasta3671 + 1, 3));
-                    } else {
-                        cuatrisMinimosCon3671 = Math.max(longitudCaminoMasLargo, longitudHasta3671 + 2);
-                    }
-                }
-            }
+            
             // Solo ejecutar PASO 3 si 3671 realmente incrementa cuatrisMinimos
+            // Esto asegura que PASO 3 solo se ejecuta cuando 3671 está en el camino crítico
             const realmenteAfectaCuatrisMinimos = cuatrisMinimosCon3671 > cuatrisMinimosSin3671;
             
             // PASO 3: Ajustar prerrequisitos de 3671 SOLO cuando 3671 realmente incrementa cuatrisMinimos

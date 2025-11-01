@@ -218,7 +218,9 @@ class PlanDeEstudios {
                         // - Si es "Primero" (1): +1 (3671 ocupará Primero y Segundo del mismo año)
                         // - Si es "Segundo" (2): +2 (3671 ocupará Primero y Segundo del año siguiente)
                         if (puedePostergarse) {
-                            const ajuste = (semester === 2) ? 2 : 1;
+                            // Asegurar que semester es un número para la comparación
+                            const semesterNum = semester !== null && semester !== undefined ? parseInt(semester) : null;
+                            const ajuste = (semesterNum === 2) ? 2 : 1;
                             this.datos_materias[id].valor_corchete += ajuste;
                         }
                     }
@@ -267,15 +269,8 @@ class PlanDeEstudios {
                             
                             // Si tiene dependientes no relacionados, su valor_corchete debe ser uno menos
                             // que el mínimo valor_corchete de sus dependientes
-                            // Pero si el valor resultante sería menor que 1, asegurarse de que sea al menos 1
-                            // porque necesita estar disponible en el primer cuatrimestre disponible
                             if (tieneDependientesNoRelacionados && minValorCorcheteDependientes !== Infinity) {
-                                // El valor deseado es uno menos que el dependiente, pero al menos 1
-                                let valorCorcheteDeseado = minValorCorcheteDependientes - 1;
-                                // Si el dependiente tiene valor_corchete 1 o menos, este debe ser 1
-                                if (valorCorcheteDeseado < 1) {
-                                    valorCorcheteDeseado = 1;
-                                }
+                                const valorCorcheteDeseado = minValorCorcheteDependientes - 1;
                                 // Comparar con valor_corchete actual (no solo si es menor)
                                 if (this.datos_materias[id].valor_corchete !== valorCorcheteDeseado) {
                                     // Ajustar para que tenga el valor_corchete correcto

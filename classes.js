@@ -156,6 +156,20 @@ class PlanDeEstudios {
                 });
             });
 
+        // Ajuste especial para 3671: como solo puede empezar en el primer cuatrimestre,
+        // si su valor_corchete calculado es par (segundo cuatrimestre), debe ajustarse a impar (primer cuatrimestre)
+        if (this.datos_materias[3671]) {
+            const valorCorchete3671 = this.datos_materias[3671].valor_corchete;
+            // Si el valor_corchete es par (corresponde a segundo cuatrimestre), ajustar a impar (primer cuatrimestre)
+            if (valorCorchete3671 % 2 === 0 && valorCorchete3671 > 0) {
+                this.datos_materias[3671].valor_corchete = valorCorchete3671 - 1;
+                // También actualizar valor_corchete_original para mantener consistencia
+                if (this.datos_materias[3671].valor_corchete_original !== undefined) {
+                    this.datos_materias[3671].valor_corchete_original = this.datos_materias[3671].valor_corchete;
+                }
+            }
+        }
+        
         // Si 3671 existe y tiene el máximo valor_corchete (o está empatado), ajustar materias no relacionadas
         // IMPORTANTE: 3671 ocupa DOS cuatrimestres (empieza en primero, termina en segundo)
         // Por lo tanto, las materias no relacionadas pueden ser postergadas un cuatrimestre SOLO si no tienen

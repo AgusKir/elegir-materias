@@ -172,12 +172,15 @@ class PlanDeEstudios {
     }
 
     ajustarCuatrimestre3671YPropagar(respuesta) {
+        // Solo ajustar si el cuatrimestre deseado es 1 (Primero)
+        if (respuesta !== 1) return;
+        
         const cuatrisMinimos = this.cuatrisMinimosHastaRecibirse();
         const datos = this.datos_materias;
         const n = datos[3671].cuatrimestre;
         let valorCorchete3671 = datos[3671].valor_corchete;
 
-        const paridadDeseada = respuesta % 2;
+        const paridadDeseada = respuesta % 2; // 1
         const paridadActual = n % 2;
 
         let ajuste = 0;
@@ -200,6 +203,10 @@ class PlanDeEstudios {
     ajustarHaciaAtras(n, datos) {
         datos[3671].cuatrimestre = n - 1;
         datos[3671].valor_corchete--;
+        // También actualizar valor_corchete_original si existe
+        if (datos[3671].valor_corchete_original !== undefined) {
+            datos[3671].valor_corchete_original--;
+        }
         let cuatriActual = n - 1;
         let materiasAMover = [3671];
 
@@ -211,6 +218,10 @@ class PlanDeEstudios {
                         this.materias[id_materia].posteriores.has(materia))) {
                         datos[id_materia].cuatrimestre--;
                         datos[id_materia].valor_corchete--;
+                        // También actualizar valor_corchete_original si existe
+                        if (datos[id_materia].valor_corchete_original !== undefined) {
+                            datos[id_materia].valor_corchete_original--;
+                        }
                         nuevasAMover.push(parseInt(id_materia));
                     }
                 }
@@ -231,6 +242,10 @@ class PlanDeEstudios {
                 this.materias[id_materia].posteriores.has(3671)) {
                 datos[id_materia].cuatrimestre++;
                 datos[id_materia].valor_corchete++;
+                // También actualizar valor_corchete_original si existe
+                if (datos[id_materia].valor_corchete_original !== undefined) {
+                    datos[id_materia].valor_corchete_original++;
+                }
                 materiasAMover.push(parseInt(id_materia));
             }
         }
@@ -244,6 +259,10 @@ class PlanDeEstudios {
                         this.materias[id_materia].posteriores.has(materia))) {
                         datos[id_materia].cuatrimestre++;
                         datos[id_materia].valor_corchete++;
+                        // También actualizar valor_corchete_original si existe
+                        if (datos[id_materia].valor_corchete_original !== undefined) {
+                            datos[id_materia].valor_corchete_original++;
+                        }
                         nuevasAMover.push(parseInt(id_materia));
                     }
                 }
@@ -311,11 +330,14 @@ class PlanDeEstudios {
             }
             
             // Solo incluir si todas las prerrequisitos están completadas Y cumple la condición de cuatrimestre
-            // Usar valor_corchete_original para la condición de readiness, pero valor_corchete para sorting
+            // Usar valor_corchete_original para la condición de readiness (no afectado por el ajuste de 3671)
+            // pero valor_corchete para sorting (afectado por el ajuste)
             const valorCorcheteParaReadiness = datos.valor_corchete_original !== undefined 
                 ? datos.valor_corchete_original 
                 : datos.valor_corchete;
             
+            // La condición original era: datos.cuatrimestre === datos.valor_corchete
+            // Usamos valor_corchete_original para que el ajuste no afecte la disponibilidad
             if (todasPrerequisitosCompletadas && datos.cuatrimestre === valorCorcheteParaReadiness) {
                 materiasEnCuatri.push([id, datos.valor_corchete, datos.cuatrimestre]);
             }
@@ -385,8 +407,30 @@ class PlanDeEstudios {
     puedoCursarEnCuatri(n) {
         const materiasEnCuatri = [];
         for (const [id_materia, datos] of Object.entries(this.datos_materias)) {
-            if (datos.cuatrimestre - datos.valor_corchete + 1 === n) {
-                materiasEnCuatri.push([parseInt(id_materia), datos.valor_corchete, datos.cuatrimestre]);
+            const id = parseInt(id_materia);
+            
+            // Verificar que la materia esté en el grafo (disponible)
+            if (!this.materias[id]) continue;
+            
+            // Verificar que todas las prerrequisitos estén satisfechas
+            const materia = this.materias[id];
+            let todasPrerequisitosCompletadas = true;
+            for (const prereqId of materia.anteriores) {
+                // Si el prereq está en el grafo, significa que NO está completado
+                if (this.materias[prereqId]) {
+                    todasPrerequisitosCompletadas = false;
+                    break;
+                }
+            }
+            
+            // Usar valor_corchete_original para la condición de readiness
+            const valorCorcheteParaReadiness = datos.valor_corchete_original !== undefined 
+                ? datos.valor_corchete_original 
+                : datos.valor_corchete;
+            
+            // Solo incluir si todas las prerrequisitos están completadas Y cumple la condición
+            if (todasPrerequisitosCompletadas && datos.cuatrimestre - valorCorcheteParaReadiness + 1 === n) {
+                materiasEnCuatri.push([id, datos.valor_corchete, datos.cuatrimestre]);
             }
         }
 

@@ -142,17 +142,23 @@ class PlanDeEstudios {
         // prerrequisitos pendientes que las obliguen a estar en el primer cuatrimestre
         if (this.datos_materias[3671]) {
             const valorCorchete3671 = this.datos_materias[3671].valor_corchete;
-            // Encontrar el máximo valor_corchete
+            // Encontrar el máximo valor_corchete (usando valor_corchete_original para comparación justa)
             let maxValorCorchete = -Infinity;
             for (const id_materia in this.datos_materias) {
-                if (this.datos_materias[id_materia].valor_corchete > maxValorCorchete) {
-                    maxValorCorchete = this.datos_materias[id_materia].valor_corchete;
+                const vc = this.datos_materias[id_materia].valor_corchete_original !== undefined 
+                    ? this.datos_materias[id_materia].valor_corchete_original 
+                    : this.datos_materias[id_materia].valor_corchete;
+                if (vc > maxValorCorchete) {
+                    maxValorCorchete = vc;
                 }
             }
             
             // Si 3671 tiene el máximo (o está empatado), significa que está al final del camino
             // y por lo tanto ocupará ambos cuatrimestres (primero y segundo)
-            if (valorCorchete3671 === maxValorCorchete) {
+            const valorCorchete3671Original = this.datos_materias[3671].valor_corchete_original !== undefined
+                ? this.datos_materias[3671].valor_corchete_original
+                : valorCorchete3671;
+            if (valorCorchete3671Original === maxValorCorchete) {
                 // Encontrar todas las materias que NO tienen a 3671 en su camino hacia adelante
                 for (const id_materia in this.datos_materias) {
                     const id = parseInt(id_materia);
@@ -169,7 +175,8 @@ class PlanDeEstudios {
                         const materia = this.materias[id];
                         let puedePostergarse = true;
                         
-                        // Verificar prerrequisitos pendientes
+                        // Verificar prerrequisitos pendientes: solo bloqueamos si el prereq está relacionado con 3671
+                        // Si el prereq NO está relacionado con 3671, ambos pueden postergarse juntos
                         for (const prereqId of materia.anteriores) {
                             if (this.materias[prereqId]) {
                                 // El prereq está pendiente
@@ -179,9 +186,8 @@ class PlanDeEstudios {
                                     puedePostergarse = false;
                                     break;
                                 }
-                                // Si el prereq NO está relacionado con 3671, entonces ambos pueden potencialmente postergarse juntos
-                                // Pero necesitamos verificar que el prereq también puede postergarse (no tiene dependientes que lo impidan)
-                                // Por ahora, si el prereq no está relacionado con 3671, asumimos que pueden moverse juntos
+                                // Si el prereq NO está relacionado con 3671, ambos pueden postergarse juntos
+                                // (no bloqueamos en este caso)
                             }
                         }
                         
@@ -190,9 +196,7 @@ class PlanDeEstudios {
                         // se haga en el segundo cuatrimestre
                         // Ejemplo: 911 -> 912, si 912 no está relacionado con 3671, entonces 911 debe estar en primero
                         // para que 912 pueda estar en segundo
-                        // IMPORTANTE: Solo consideramos dependientes que están en el grafo (pendientes), no los completados
                         if (puedePostergarse) {
-                            let tieneDependientesPendientesNoRelacionados = false;
                             for (const dependienteId of materia.posteriores) {
                                 if (this.materias[dependienteId]) {
                                     // El dependiente está pendiente (en el grafo)
@@ -201,13 +205,10 @@ class PlanDeEstudios {
                                         // El dependiente tampoco está relacionado con 3671
                                         // Esto significa que esta materia debe hacerse primero para que el dependiente
                                         // pueda hacerse después, por lo tanto NO puede postergarse
-                                        tieneDependientesPendientesNoRelacionados = true;
+                                        puedePostergarse = false;
                                         break;
                                     }
                                 }
-                            }
-                            if (tieneDependientesPendientesNoRelacionados) {
-                                puedePostergarse = false;
                             }
                         }
                         

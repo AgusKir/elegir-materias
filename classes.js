@@ -239,18 +239,19 @@ class PlanDeEstudios {
         if (this.datos_materias[3671]) {
             const valorCorchete3671 = this.datos_materias[3671].valor_corchete;
             
-            // Calcular cuatrisMinimos con 3671 (ya lo tenemos calculado arriba)
-            const cuatrisMinimosCon3671 = cuatrisMinimos;
-            
-            // Calcular cuatrisMinimos sin 3671: simplemente la longitud del camino más largo general
-            // (sin considerar ajustes de 3671)
+            // Verificar si 3671 está EXPLÍCITAMENTE en el camino más largo
+            // No usar "longitudHasta3671 >= longitudCaminoMasLargo" porque eso puede ser true
+            // incluso cuando 3671 no está en el camino más largo (solo que hay otro camino igual de largo)
             const caminoMasLargo = this.encontrarCaminoMasLargo();
             const longitudCaminoMasLargo = caminoMasLargo.length;
-            const cuatrisMinimosSin3671 = longitudCaminoMasLargo;
             
-            // Solo ejecutar PASO 3 si 3671 realmente incrementa cuatrisMinimos
-            // Esto asegura que PASO 3 solo se ejecuta cuando 3671 está en el camino crítico
-            const realmenteAfectaCuatrisMinimos = cuatrisMinimosCon3671 > cuatrisMinimosSin3671;
+            // PASO 3 solo debe ejecutarse si 3671 está explícitamente en el camino más largo
+            // Si solo "longitudHasta3671 >= longitudCaminoMasLargo" pero 3671 no está en el camino,
+            // entonces 3671 no determina cuatrisMinimos y no debemos ajustar sus prerrequisitos
+            const estaEnCaminoCritico = caminoMasLargo.includes(3671);
+            
+            // Solo ejecutar PASO 3 si 3671 está explícitamente en el camino más largo
+            const realmenteAfectaCuatrisMinimos = estaEnCaminoCritico;
             
             // PASO 3: Ajustar prerrequisitos de 3671 SOLO cuando 3671 realmente incrementa cuatrisMinimos
             // Como 3671 ocupa 2 semestres, sus prerrequisitos deben completarse 1 semestre antes

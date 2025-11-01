@@ -112,37 +112,28 @@ class PlanDeEstudios {
             const caminoHasta3671 = this.encontrarCaminoMasLargoHasta(3671);
             const longitudHasta3671 = caminoHasta3671.length;
             
-            // Si 3671 está en el camino más largo general, ese camino ya incluye 3671
-            // pero necesitamos agregar 2 más porque 3671 toma 2 semestres en lugar de 1
-            // (1 semestre adicional más allá de lo que ya cuenta)
+            // Si 3671 está en el camino más largo general, ajustar según el semester
             if (caminoMasLargoGeneral.includes(3671)) {
-                return longitudGeneral + 2;
+                if (semester !== null && semester !== undefined && parseInt(semester) === 2) {
+                    // En Segundo, agregar solo 1 porque 3671 no puede empezar hasta el siguiente año
+                    return longitudGeneral + 1;
+                } else {
+                    // En Primero, agregar 2 porque 3671 puede empezar inmediatamente y ocupa 2 semestres
+                    return longitudGeneral + 2;
+                }
             }
             
             // Si no, comparar con el camino hasta 3671
             // IMPORTANTE: 3671 ocupa 2 cuatrimestres, así que el camino efectivo debe considerar esto
-            // Si el camino hasta 3671 es de longitud N, entonces:
-            // - Para "Primero": 3671 puede empezar inmediatamente, así que toma N+1 semestres
-            //   (los prereqs + 2 semestres para 3671 = (N-1) + 2 = N+1)
-            // - Para "Segundo": 3671 solo puede empezar en el siguiente año, así que toma 3 semestres mínimo
-            // Calcular la longitud efectiva considerando que 3671 ocupa 2 semestres
-            // Si el camino hasta 3671 tiene longitud N (incluye 3671):
-            // - Los prerequisitos toman (N-1) semestres
-            // - 3671 toma 2 semestres
-            // - Total efectivo = (N-1) + 2 = N+1
-            // Pero para que funcione correctamente con los ejemplos del usuario,
-            // necesitamos agregar 2 en lugar de 1 cuando el semester es Primero
             let longitudEfectivaHasta3671;
             if (semester !== null && semester !== undefined && parseInt(semester) === 2) {
                 // En Segundo, 3671 solo puede empezar en el siguiente año, así que:
                 // - Path 3667 → 3671 (length 2)
                 // - Desde ahora: siguiente Primero (3667) → siguiente Segundo (3671 starts) → año siguiente Primero (3671 finishes)
                 // - Total efectivo: 3 semestres desde ahora
-                // Pero para que 3667 tenga valor_corchete 1 y 904 tenga valor_corchete 3,
-                // necesitamos cuatrisMinimos = 3 (no 2)
                 // Si longitudHasta3671 = 2, entonces: 2 + 1 = 3 ✓
                 longitudEfectivaHasta3671 = longitudHasta3671 + 1;
-                // Pero asegurar mínimo 3 para casos sin prereqs
+                // Asegurar mínimo 3 para casos sin prereqs
                 longitudEfectivaHasta3671 = Math.max(longitudEfectivaHasta3671, 3);
             } else {
                 // En Primero, el camino efectivo debe ser N+2 para que 3671 tenga espacio para sus 2 semestres

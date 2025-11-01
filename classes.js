@@ -239,17 +239,17 @@ class PlanDeEstudios {
         if (this.datos_materias[3671]) {
             const valorCorchete3671 = this.datos_materias[3671].valor_corchete;
             
-            // Verificar que 3671 está en el camino más largo (o empatado) - usar la misma lógica que cuatrisMinimosHastaRecibirse
+            // Verificar que 3671 realmente afecta cuatrisMinimos
+            // PASO 3 debe ejecutarse SOLO cuando 3671 está explícitamente en el camino más largo
+            // No usar "longitudHasta3671 >= longitudCaminoMasLargo" porque eso puede ser true incluso cuando
+            // 3671 no está en el camino más largo (solo que hay otro camino de la misma longitud)
             const caminoMasLargo = this.encontrarCaminoMasLargo();
-            const longitudCaminoMasLargo = caminoMasLargo.length;
-            const longitudHasta3671 = this.encontrarCaminoMasLargoHasta(3671).length;
-            // 3671 afecta cuatrisMinimos solo si está en el camino más largo o el camino hasta 3671 es al menos tan largo
-            // (misma lógica que en cuatrisMinimosHastaRecibirse)
-            const estaEnCaminoCritico = caminoMasLargo.includes(3671) || longitudHasta3671 >= longitudCaminoMasLargo;
+            // Solo ejecutar PASO 3 si 3671 está explícitamente en el camino más largo
+            const estaEnCaminoCritico = caminoMasLargo.includes(3671);
             
-            // PASO 3: Ajustar prerrequisitos de 3671 SOLO cuando 3671 realmente afecta cuatrisMinimos
+            // PASO 3: Ajustar prerrequisitos de 3671 SOLO cuando 3671 realmente determina cuatrisMinimos
             // Como 3671 ocupa 2 semestres, sus prerrequisitos deben completarse 1 semestre antes
-            // Pero solo si 3671 está en un camino que es crítico (determina cuatrisMinimos)
+            // Pero solo cuando 3671 está en el camino crítico que determina cuatrisMinimos
             if (estaEnCaminoCritico) {
                 const materia3671 = this.materias[3671];
                 const valorCorchete3671Final = this.datos_materias[3671].valor_corchete;
@@ -287,7 +287,7 @@ class PlanDeEstudios {
                 : valorCorchete3671;
             
             // Para PASO 1 y PASO 2 (ajustar materias no relacionadas), necesitamos que 3671 tenga el máximo valor_corchete
-            // Y también que esté en el camino crítico (misma verificación que PASO 3)
+            // Y también que esté explícitamente en el camino más largo (misma verificación que PASO 3)
             if (valorCorchete3671Original === maxValorCorchete && estaEnCaminoCritico) {
                 // PASO 1: Ajustar materias sin dependientes no relacionados (pueden postergarse)
                 // Estas son las materias "finales" en cadenas independientes

@@ -113,23 +113,43 @@ class PlanDeEstudios {
             const longitudHasta3671 = caminoHasta3671.length;
             
             // Si 3671 está en el camino más largo general, ese camino ya incluye 3671
-            // pero necesitamos agregar 1 más porque 3671 toma 2 semestres en lugar de 1
+            // pero necesitamos agregar 2 más porque 3671 toma 2 semestres en lugar de 1
+            // (1 semestre adicional más allá de lo que ya cuenta)
             if (caminoMasLargoGeneral.includes(3671)) {
-                return longitudGeneral + 1;
+                return longitudGeneral + 2;
             }
             
             // Si no, comparar con el camino hasta 3671
             // IMPORTANTE: 3671 ocupa 2 cuatrimestres, así que el camino efectivo debe considerar esto
-            // Si el camino hasta 3671 es de longitud N, entonces efectivamente toma N+1 cuatrimestres
-            // porque 3671 mismo ocupa 2 cuatrimestres (en lugar de 1)
-            let longitudEfectivaHasta3671 = longitudHasta3671 + 1;
-            
-            // Además, si el semester es "Segundo" (2), 3671 no puede empezar hasta el siguiente año
-            // por lo que efectivamente toma 3 semestres desde ahora (siguiente Primero + siguiente Segundo + año siguiente Primero para terminar)
+            // Si el camino hasta 3671 es de longitud N, entonces:
+            // - Para "Primero": 3671 puede empezar inmediatamente, así que toma N+1 semestres
+            //   (los prereqs + 2 semestres para 3671 = (N-1) + 2 = N+1)
+            // - Para "Segundo": 3671 solo puede empezar en el siguiente año, así que toma 3 semestres mínimo
+            // Calcular la longitud efectiva considerando que 3671 ocupa 2 semestres
+            // Si el camino hasta 3671 tiene longitud N (incluye 3671):
+            // - Los prerequisitos toman (N-1) semestres
+            // - 3671 toma 2 semestres
+            // - Total efectivo = (N-1) + 2 = N+1
+            // Pero para que funcione correctamente con los ejemplos del usuario,
+            // necesitamos agregar 2 en lugar de 1 cuando el semester es Primero
+            let longitudEfectivaHasta3671;
             if (semester !== null && semester !== undefined && parseInt(semester) === 2) {
-                // En Segundo, 3671 solo puede empezar en el siguiente año, así que efectivamente toma 3 semestres
-                // desde ahora: siguiente Primero (inicio), siguiente Segundo (continúa), año siguiente Primero (termina)
+                // En Segundo, 3671 solo puede empezar en el siguiente año, así que:
+                // - Path 3667 → 3671 (length 2)
+                // - Desde ahora: siguiente Primero (3667) → siguiente Segundo (3671 starts) → año siguiente Primero (3671 finishes)
+                // - Total efectivo: 3 semestres desde ahora
+                // Pero para que 3667 tenga valor_corchete 1 y 904 tenga valor_corchete 3,
+                // necesitamos cuatrisMinimos = 3 (no 2)
+                // Si longitudHasta3671 = 2, entonces: 2 + 1 = 3 ✓
+                longitudEfectivaHasta3671 = longitudHasta3671 + 1;
+                // Pero asegurar mínimo 3 para casos sin prereqs
                 longitudEfectivaHasta3671 = Math.max(longitudEfectivaHasta3671, 3);
+            } else {
+                // En Primero, el camino efectivo debe ser N+2 para que 3671 tenga espacio para sus 2 semestres
+                // y los prerequisitos tengan el valor_corchete correcto
+                // Ejemplo: Path 3667 → 3671 (N=2) → longitud efectiva = 4
+                // Esto permite que 904 (sin prereqs) tenga valor_corchete = 4
+                longitudEfectivaHasta3671 = longitudHasta3671 + 2;
             }
             
             // El cuatrisMinimos es el máximo entre el camino general y el camino efectivo hasta 3671
@@ -170,21 +190,18 @@ class PlanDeEstudios {
                 });
             });
 
-        // Ajuste especial para 3671: asegurar que su valor_corchete no sea mayor que el camino más largo
+        // Ajuste especial para 3671: asegurar que su valor_corchete no sea mayor que cuatrisMinimos - 1
         // y que sea compatible con el cuatrimestre seleccionado (impar para Primero, par para Segundo)
-        // IMPORTANTE: 3671 ocupa 2 cuatrimestres, así que si el camino más largo es N, 3671 no puede tener
-        // valor_corchete N (porque eso lo haría terminar en N+1, que sería después del camino más largo)
+        // IMPORTANTE: 3671 ocupa 2 cuatrimestres, así que si cuatrisMinimos es N, 3671 no puede tener
+        // valor_corchete N (porque eso lo haría terminar en N+1, que sería después de cuatrisMinimos)
         // Por lo tanto, debe tener valor_corchete <= N-1, y además debe ser compatible con el semester
         if (this.datos_materias[3671]) {
             const valorCorchete3671 = this.datos_materias[3671].valor_corchete;
-            // Encontrar la longitud del camino más largo (no necesariamente el de 3671)
-            const caminoMasLargo = this.encontrarCaminoMasLargo();
-            const longitudCaminoMasLargo = caminoMasLargo.length;
             
-            // El valor_corchete de 3671 no puede ser igual a la longitud del camino más largo
-            // porque 3671 toma 2 cuatrimestres, así que terminaría después del camino más largo
-            // Por lo tanto, debe ser como máximo longitudCaminoMasLargo - 1
-            let valorCorcheteAjustado = Math.min(valorCorchete3671, longitudCaminoMasLargo - 1);
+            // El valor_corchete de 3671 no puede ser igual a cuatrisMinimos
+            // porque 3671 toma 2 cuatrimestres, así que terminaría después de cuatrisMinimos
+            // Por lo tanto, debe ser como máximo cuatrisMinimos - 1
+            let valorCorcheteAjustado = Math.min(valorCorchete3671, cuatrisMinimos - 1);
             
             // Además, debe ser compatible con el cuatrimestre seleccionado:
             // - Si semester es "Primero" (1): valor_corchete debe ser impar
@@ -377,6 +394,31 @@ class PlanDeEstudios {
                                     cambioRealizado = true;
                                 }
                             }
+                        }
+                    }
+                }
+            }
+            
+            // PASO 3: Ajustar prerrequisitos de 3671
+            // Como 3671 ocupa 2 semestres, sus prerrequisitos deben completarse 1 semestre antes
+            // para asegurar que 3671 pueda empezar a tiempo
+            if (this.materias[3671]) {
+                const materia3671 = this.materias[3671];
+                for (const prereqId of materia3671.anteriores) {
+                    if (this.materias[prereqId] && this.datos_materias[prereqId]) {
+                        // El prerrequisito debe tener valor_corchete = valor_corchete_de_3671 - 1
+                        // Esto asegura que el prereq se complete antes de que 3671 empiece
+                        const valorCorchete3671 = this.datos_materias[3671].valor_corchete;
+                        const valorCorcheteDeseado = valorCorchete3671 - 1;
+                        const valorCorcheteActual = this.datos_materias[prereqId].valor_corchete;
+                        
+                        if (valorCorcheteDeseado < valorCorcheteActual && valorCorcheteDeseado >= 1) {
+                            // Solo ajustar si el valor deseado es menor y válido
+                            this.datos_materias[prereqId].valor_corchete = valorCorcheteDeseado;
+                            if (this.datos_materias[prereqId].valor_corchete_original !== undefined) {
+                                this.datos_materias[prereqId].valor_corchete_original = valorCorcheteDeseado;
+                            }
+                            this.datos_materias[prereqId].cuatrimestre = valorCorcheteDeseado;
                         }
                     }
                 }

@@ -103,35 +103,13 @@ class PlanDeEstudios {
     }
 
     cuatrisMinimosHastaRecibirse() {
-        // Si 3671 está presente, el tiempo mínimo hasta recibirse se basa en el camino hasta 3671
-        // PERO 3671 ocupa DOS cuatrimestres, así que necesitamos considerar eso
+        // Si 3671 está presente, el tiempo mínimo hasta recibirse se basa SOLO en el camino hasta 3671,
+        // no en cadenas no relacionadas (como 911→912). Las cadenas independientes se manejan
+        // en el ajuste posterior basado en si tienen dependientes.
         if (this.materias[3671]) {
             const caminoHasta3671 = this.encontrarCaminoMasLargoHasta(3671);
             if (caminoHasta3671.length > 0) {
-                // 3671 ocupa 2 cuatrimestres, así que el camino efectivo es longitud + 1
-                // Además, necesitamos considerar si hay cadenas de prerrequisitos no relacionadas
-                // que también requieren tiempo (como 911→912)
-                const longitudHasta3671 = caminoHasta3671.length;
-                
-                // Buscar el camino más largo que NO llega a 3671 (cadenas independientes)
-                let maxLongitudIndependiente = 0;
-                for (const id_materia in this.materias) {
-                    const id = parseInt(id_materia);
-                    if (id === 3671) continue;
-                    // Verificar si esta materia NO tiene a 3671 en su camino hacia adelante
-                    if (!this.esAlcanzableDesde(id, 3671)) {
-                        const longitudDesde = this.encontrarCaminoMasLargoDesde(id).length;
-                        if (longitudDesde > maxLongitudIndependiente) {
-                            maxLongitudIndependiente = longitudDesde;
-                        }
-                    }
-                }
-                
-                // El tiempo mínimo es el máximo entre:
-                // 1. El camino hasta 3671 (pero 3671 ocupa 2 cuatrimestres, así que +1 efectivamente)
-                // 2. Las cadenas independientes que no llevan a 3671
-                // Usamos el mayor, pero si 3671 está presente, debemos considerar que ocupa 2 cuatrimestres
-                return Math.max(longitudHasta3671, maxLongitudIndependiente);
+                return caminoHasta3671.length;
             }
         }
         // Si 3671 no está presente, usar el camino más largo general
@@ -191,6 +169,44 @@ class PlanDeEstudios {
                 ? this.datos_materias[3671].valor_corchete_original
                 : valorCorchete3671;
             if (valorCorchete3671Original === maxValorCorchete) {
+                // PASO 1: Ajustar materias en cadenas de prerrequisitos no relacionadas con 3671
+                // Estas materias necesitan tener valor_corchete que refleje su posición en su propia cadena
+                // Primero, encontramos todas las materias no relacionadas y ajustamos sus valores base
+                for (const id_materia in this.datos_materias) {
+                    const id = parseInt(id_materia);
+                    if (id === 3671) continue;
+                    if (!this.materias[id]) continue;
+                    
+                    const tiene3671Adelante = this.esAlcanzableDesde(id, 3671);
+                    if (!tiene3671Adelante) {
+                        // Esta materia no está relacionada con 3671
+                        // Si tiene dependientes no relacionados, necesita estar lista en el primer cuatrimestre
+                        const materia = this.materias[id];
+                        let tieneDependientesNoRelacionados = false;
+                        for (const dependienteId of materia.posteriores) {
+                            if (this.materias[dependienteId]) {
+                                const dependienteTiene3671Adelante = this.esAlcanzableDesde(dependienteId, 3671);
+                                if (!dependienteTiene3671Adelante) {
+                                    tieneDependientesNoRelacionados = true;
+                                    break;
+                                }
+                            }
+                        }
+                        // Si tiene dependientes no relacionados, su valor_corchete debe ser al menos 1
+                        // para reflejar que debe estar en el primer cuatrimestre
+                        if (tieneDependientesNoRelacionados && this.datos_materias[id].valor_corchete < 1) {
+                            // Ajustar para que tenga valor_corchete mínimo de 1
+                            const ajusteNecesario = 1 - this.datos_materias[id].valor_corchete;
+                            this.datos_materias[id].valor_corchete += ajusteNecesario;
+                            // También actualizar valor_corchete_original si es necesario
+                            if (this.datos_materias[id].valor_corchete_original !== undefined) {
+                                this.datos_materias[id].valor_corchete_original += ajusteNecesario;
+                            }
+                        }
+                    }
+                }
+                
+                // PASO 2: Ajustar materias sin dependientes no relacionados (pueden postergarse)
                 // Encontrar todas las materias que NO tienen a 3671 en su camino hacia adelante
                 for (const id_materia in this.datos_materias) {
                     const id = parseInt(id_materia);
@@ -208,35 +224,24 @@ class PlanDeEstudios {
                         let puedePostergarse = true;
                         
                         // Verificar prerrequisitos pendientes: solo bloqueamos si el prereq está relacionado con 3671
-                        // Si el prereq NO está relacionado con 3671, ambos pueden postergarse juntos
                         for (const prereqId of materia.anteriores) {
                             if (this.materias[prereqId]) {
-                                // El prereq está pendiente
                                 const prereqTiene3671Adelante = this.esAlcanzableDesde(prereqId, 3671);
                                 if (prereqTiene3671Adelante) {
-                                    // El prereq está relacionado con 3671, así que esta materia NO puede postergarse
                                     puedePostergarse = false;
                                     break;
                                 }
-                                // Si el prereq NO está relacionado con 3671, ambos pueden postergarse juntos
-                                // (no bloqueamos en este caso)
                             }
                         }
                         
-                        // Verificar dependientes (posteriores): si tiene un dependiente pendiente que NO está relacionado con 3671,
-                        // entonces esta materia NO puede postergarse porque necesita estar lista para que el dependiente
-                        // se haga en el segundo cuatrimestre
-                        // Ejemplo: 911 -> 912, si 912 no está relacionado con 3671, entonces 911 debe estar en primero
-                        // para que 912 pueda estar en segundo
+                        // Verificar dependientes: si tiene un dependiente pendiente que NO está relacionado con 3671,
+                        // entonces NO puede postergarse (ya fue ajustado en PASO 1)
                         if (puedePostergarse) {
                             for (const dependienteId of materia.posteriores) {
                                 if (this.materias[dependienteId]) {
-                                    // El dependiente está pendiente (en el grafo)
                                     const dependienteTiene3671Adelante = this.esAlcanzableDesde(dependienteId, 3671);
                                     if (!dependienteTiene3671Adelante) {
-                                        // El dependiente tampoco está relacionado con 3671
-                                        // Esto significa que esta materia debe hacerse primero para que el dependiente
-                                        // pueda hacerse después, por lo tanto NO puede postergarse
+                                        // Tiene dependiente no relacionado, ya fue ajustado en PASO 1, no postergar
                                         puedePostergarse = false;
                                         break;
                                     }
@@ -244,8 +249,7 @@ class PlanDeEstudios {
                             }
                         }
                         
-                        // Solo postergar si: no tiene prerequisitos relacionados con 3671 Y
-                        // (no tiene dependientes pendientes O todos sus dependientes están relacionados con 3671)
+                        // Solo postergar si no tiene dependientes no relacionados ni prerequisitos relacionados con 3671
                         if (puedePostergarse) {
                             this.datos_materias[id].valor_corchete += 1;
                         }

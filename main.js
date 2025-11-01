@@ -437,7 +437,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 pedido++;
             }
             // Mostrar resultados
-            resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:<span class="help-icon" title="Placeholder">ⓘ</span></h3>';
+            resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:<span class="help-icon" title="Fijándose en tus materias actuales, el sistema calcula el camino de correlativas más largo hasta recibirte, y en base a eso te ordena las materias según las correlativas que tienen después. El número en corchetes básicamente significa cuántos cuatris tenés para aprobarla (sin contar verano) sin atrasarte en tu tiempo mínimo de graduación.">ⓘ</span></h3>';
             fijasFiltradas.forEach(materia => {
                 resultsDiv.innerHTML += `<p>${materia}</p>`;
             });

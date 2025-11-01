@@ -73,6 +73,33 @@ class PlanDeEstudios {
         return caminoMaximo;
     }
 
+    // Verificar si un subject_id es alcanzable desde otro subject_id (si está en algún camino hacia adelante)
+    esAlcanzableDesde(id_origen, id_destino) {
+        if (!this.materias[id_origen] || !this.materias[id_destino]) return false;
+        if (id_origen === id_destino) return true;
+        
+        // Usar DFS para verificar si id_destino es alcanzable desde id_origen
+        const visitados = new Set();
+        const stack = [id_origen];
+        visitados.add(id_origen);
+        
+        while (stack.length > 0) {
+            const actual = stack.pop();
+            if (actual === id_destino) return true;
+            
+            if (this.materias[actual]) {
+                for (const posterior of this.materias[actual].posteriores) {
+                    if (!visitados.has(posterior)) {
+                        visitados.add(posterior);
+                        stack.push(posterior);
+                    }
+                }
+            }
+        }
+        
+        return false;
+    }
+
     cuatrisMinimosHastaRecibirse() {
         return this.encontrarCaminoMasLargo().length;
     }
@@ -124,9 +151,8 @@ class PlanDeEstudios {
                     const id = parseInt(id_materia);
                     if (id === 3671) continue; // No modificar 3671 a sí mismo
                     
-                    // Verificar si 3671 está en el camino hacia adelante desde esta materia
-                    const caminoAdelante = this.encontrarCaminoMasLargoDesde(id);
-                    const tiene3671Adelante = caminoAdelante.includes(3671);
+                    // Verificar si 3671 es alcanzable desde esta materia (usando búsqueda exhaustiva)
+                    const tiene3671Adelante = this.esAlcanzableDesde(id, 3671);
                     
                     // Si NO tiene 3671 adelante, aumentar valor_corchete en 1
                     if (!tiene3671Adelante) {

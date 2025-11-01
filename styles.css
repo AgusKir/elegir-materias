@@ -274,7 +274,7 @@ body.light-mode #calculate-button:hover {
 /* Toggle button */
 #darkmode-toggle {
     position: absolute;
-    top: 24px;
+    top: 5px;
     left: 150px;
     right: auto;
     z-index: 10;
@@ -423,7 +423,7 @@ form#subject-form {
 .button-row {
     display: flex;
     justify-content: center;
-    gap: 16px;
+    gap: 8px;
     margin-top: 18px;
     margin-bottom: 0;
 }
@@ -560,7 +560,7 @@ body.light-mode .top-notification {
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    background: #4CAF50;
+    background: #222;
     color: white;
     text-align: center;
     font-size: 13px;
@@ -571,7 +571,8 @@ body.light-mode .top-notification {
 }
 
 body.dark-mode .help-icon {
-    background: #66BB6A;
+    background: white;
+    color: #222;
 }
 
 .help-icon:hover::after {

@@ -273,8 +273,8 @@ body.light-mode #calculate-button:hover {
 
 /* Toggle button */
 #darkmode-toggle {
-    position: absolute;
-    top: 0px;
+    position: fixed;
+    top: 8px;
     left: 150px;
     right: auto;
     z-index: 10;
@@ -283,10 +283,18 @@ body.light-mode #calculate-button:hover {
     cursor: pointer;
     font-size: 24px;
     color: inherit;
+    padding: 0;
+    margin: 0;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 #darkmode-toggle img {
     width: 64px;
     height: 64px;
+    pointer-events: none;
 }
 
 /* Modo oscuro: colores de fondo de materias más oscuros y apagados */
@@ -480,7 +488,7 @@ body.dark-mode .status-button.status-final-ignorar, body.light-mode .status-butt
 .quick-select-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(200px, 1fr));
-    gap: 8px 8px;
+    gap: 8px 4px;
     margin: 0 0 18px 0;
     padding-left: 12px; /* más padding para alinear visualmente con la tabla */
 }

@@ -289,7 +289,18 @@ class PlanDeEstudios {
     materiasProximoCuatri(cantidad) {
         const materiasEnCuatri = [];
         for (const [id_materia, datos] of Object.entries(this.datos_materias)) {
-            if (datos.cuatrimestre === datos.valor_corchete) {
+            // Verificar que la materia esté en el grafo (disponible)
+            if (!this.materias[parseInt(id_materia)]) continue;
+            
+            // Verificar que todas las prerrequisitos estén satisfechas
+            // (si la materia tiene prerrequisitos que están en el grafo, no puede ser tomada aún)
+            const materia = this.materias[parseInt(id_materia)];
+            const prerrequisitosNoCompletados = Array.from(materia.anteriores).filter(
+                prereqId => this.materias[prereqId] // Si el prereq está en el grafo, no está completado
+            );
+            
+            // Solo incluir si no hay prerrequisitos pendientes Y cumple la condición de cuatrimestre
+            if (prerrequisitosNoCompletados.length === 0 && datos.cuatrimestre === datos.valor_corchete) {
                 materiasEnCuatri.push([parseInt(id_materia), datos.valor_corchete, datos.cuatrimestre]);
             }
         }

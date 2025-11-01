@@ -136,8 +136,10 @@ class PlanDeEstudios {
                 });
             });
 
-        // Si 3671 existe y tiene el máximo valor_corchete (o está empatado), aumentar +1 a materias no relacionadas
-        // IMPORTANTE: Verificar si 3671 tiene el máximo incluso si no está unlocked (no en el grafo actual)
+        // Si 3671 existe y tiene el máximo valor_corchete (o está empatado), ajustar materias no relacionadas
+        // IMPORTANTE: 3671 ocupa DOS cuatrimestres (empieza en primero, termina en segundo)
+        // Por lo tanto, las materias no relacionadas pueden ser postergadas un cuatrimestre SOLO si no tienen
+        // prerrequisitos pendientes que las obliguen a estar en el primer cuatrimestre
         if (this.datos_materias[3671]) {
             const valorCorchete3671 = this.datos_materias[3671].valor_corchete;
             // Encontrar el máximo valor_corchete
@@ -148,23 +150,61 @@ class PlanDeEstudios {
                 }
             }
             
-            // Si 3671 tiene el máximo (o está empatado)
+            // Si 3671 tiene el máximo (o está empatado), significa que está al final del camino
+            // y por lo tanto ocupará ambos cuatrimestres (primero y segundo)
             if (valorCorchete3671 === maxValorCorchete) {
                 // Encontrar todas las materias que NO tienen a 3671 en su camino hacia adelante
-                // Solo considerar materias que están en el grafo actual (no completadas)
                 for (const id_materia in this.datos_materias) {
                     const id = parseInt(id_materia);
                     if (id === 3671) continue; // No modificar 3671 a sí mismo
                     
-                    // Solo procesar si la materia está en el grafo actual
+                    // Solo procesar si la materia está en el grafo actual (no completada)
                     if (!this.materias[id]) continue;
                     
-                    // Verificar si 3671 es alcanzable desde esta materia (usando búsqueda exhaustiva)
+                    // Verificar si 3671 es alcanzable desde esta materia
                     const tiene3671Adelante = this.esAlcanzableDesde(id, 3671);
                     
-                    // Si NO tiene 3671 adelante, aumentar valor_corchete en 1 (pero NO valor_corchete_original)
+                    // Si NO tiene 3671 adelante, puede potencialmente ser postergada
                     if (!tiene3671Adelante) {
-                        this.datos_materias[id].valor_corchete += 1;
+                        const materia = this.materias[id];
+                        let puedePostergarse = true;
+                        
+                        // Verificar prerrequisitos: si algún prereq está relacionado con 3671, no puede postergarse
+                        for (const prereqId of materia.anteriores) {
+                            if (this.materias[prereqId]) {
+                                const prereqTiene3671Adelante = this.esAlcanzableDesde(prereqId, 3671);
+                                if (prereqTiene3671Adelante) {
+                                    puedePostergarse = false;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Verificar dependientes (posteriores): si tiene un dependiente que NO está relacionado con 3671,
+                        // entonces esta materia NO puede postergarse porque necesita estar lista para que el dependiente
+                        // se haga en el segundo cuatrimestre
+                        // Ejemplo: 911 -> 912, si 912 no está relacionado con 3671, entonces 911 debe estar en primero
+                        // para que 912 pueda estar en segundo
+                        if (puedePostergarse) {
+                            for (const dependienteId of materia.posteriores) {
+                                if (this.materias[dependienteId]) {
+                                    // El dependiente está pendiente
+                                    const dependienteTiene3671Adelante = this.esAlcanzableDesde(dependienteId, 3671);
+                                    if (!dependienteTiene3671Adelante) {
+                                        // El dependiente tampoco está relacionado con 3671
+                                        // Esto significa que esta materia debe hacerse primero para que el dependiente
+                                        // pueda hacerse después, por lo tanto NO puede postergarse
+                                        puedePostergarse = false;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Solo postergar si no tiene prerequisitos relacionados con 3671 Y no tiene dependientes no relacionados
+                        if (puedePostergarse) {
+                            this.datos_materias[id].valor_corchete += 1;
+                        }
                     }
                 }
             }

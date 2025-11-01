@@ -289,19 +289,28 @@ class PlanDeEstudios {
     materiasProximoCuatri(cantidad) {
         const materiasEnCuatri = [];
         for (const [id_materia, datos] of Object.entries(this.datos_materias)) {
+            const id = parseInt(id_materia);
+            
             // Verificar que la materia esté en el grafo (disponible)
-            if (!this.materias[parseInt(id_materia)]) continue;
+            if (!this.materias[id]) continue;
             
             // Verificar que todas las prerrequisitos estén satisfechas
             // (si la materia tiene prerrequisitos que están en el grafo, no puede ser tomada aún)
-            const materia = this.materias[parseInt(id_materia)];
-            const prerrequisitosNoCompletados = Array.from(materia.anteriores).filter(
-                prereqId => this.materias[prereqId] // Si el prereq está en el grafo, no está completado
-            );
+            const materia = this.materias[id];
             
-            // Solo incluir si no hay prerrequisitos pendientes Y cumple la condición de cuatrimestre
-            if (prerrequisitosNoCompletados.length === 0 && datos.cuatrimestre === datos.valor_corchete) {
-                materiasEnCuatri.push([parseInt(id_materia), datos.valor_corchete, datos.cuatrimestre]);
+            // Verificar cada prerequisito: debe NO estar en el grafo (ya completado)
+            let todasPrerequisitosCompletadas = true;
+            for (const prereqId of materia.anteriores) {
+                // Si el prereq está en el grafo, significa que NO está completado, así que no podemos tomar esta materia
+                if (this.materias[prereqId]) {
+                    todasPrerequisitosCompletadas = false;
+                    break;
+                }
+            }
+            
+            // Solo incluir si todas las prerrequisitos están completadas Y cumple la condición de cuatrimestre
+            if (todasPrerequisitosCompletadas && datos.cuatrimestre === datos.valor_corchete) {
+                materiasEnCuatri.push([id, datos.valor_corchete, datos.cuatrimestre]);
             }
         }
         materiasEnCuatri.sort((a, b) => a[1] - b[1]);

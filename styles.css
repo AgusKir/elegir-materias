@@ -273,7 +273,7 @@ body.light-mode #calculate-button:hover {
 
 /* Toggle button */
 #darkmode-toggle {
-    position: fixed;
+    position: absolute;
     top: 8px;
     left: 150px;
     right: auto;

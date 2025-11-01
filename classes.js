@@ -107,10 +107,19 @@ class PlanDeEstudios {
         const caminoMasLargoGeneral = this.encontrarCaminoMasLargo();
         const longitudGeneral = caminoMasLargoGeneral.length;
         
-        // Si 3671 está presente, verificar si está en el camino más largo
+        // Si 3671 está presente, verificar si está en el camino más largo O si el camino hasta 3671 es al menos tan largo
         if (this.materias[3671]) {
             const caminoHasta3671 = this.encontrarCaminoMasLargoHasta(3671);
             const longitudHasta3671 = caminoHasta3671.length;
+            
+            // Solo ajustar si el camino hasta 3671 es al menos tan largo como el camino general
+            // (es decir, si 3671 está en un camino que es al menos tan crítico como el más largo)
+            const estaEnCaminoCritico = caminoMasLargoGeneral.includes(3671) || longitudHasta3671 >= longitudGeneral;
+            
+            if (!estaEnCaminoCritico) {
+                // Si 3671 no está en el camino crítico, no afecta cuatrisMinimos
+                return longitudGeneral;
+            }
             
             // Si 3671 está en el camino más largo general, ajustar según el semester
             if (caminoMasLargoGeneral.includes(3671)) {
@@ -123,23 +132,21 @@ class PlanDeEstudios {
                 }
             }
             
-            // Si no, comparar con el camino hasta 3671
+            // Si no está en el camino más largo pero el camino hasta 3671 es al menos tan largo,
+            // calcular el camino efectivo hasta 3671
             // IMPORTANTE: 3671 ocupa 2 cuatrimestres, así que el camino efectivo debe considerar esto
             let longitudEfectivaHasta3671;
             if (semester !== null && semester !== undefined && parseInt(semester) === 2) {
                 // En Segundo, 3671 solo puede empezar en el siguiente año, así que:
-                // - Path 3667 → 3671 (length 2)
-                // - Desde ahora: siguiente Primero (3667) → siguiente Segundo (3671 starts) → año siguiente Primero (3671 finishes)
-                // - Total efectivo: 3 semestres desde ahora
-                // Si longitudHasta3671 = 2, entonces: 2 + 1 = 3 ✓
+                // - Path hasta 3671 (length N)
+                // - Desde ahora: siguiente Primero → siguiente Segundo (3671 starts) → año siguiente Primero (3671 finishes)
+                // - Total efectivo: N+1 semestres desde ahora
                 longitudEfectivaHasta3671 = longitudHasta3671 + 1;
                 // Asegurar mínimo 3 para casos sin prereqs
                 longitudEfectivaHasta3671 = Math.max(longitudEfectivaHasta3671, 3);
             } else {
                 // En Primero, el camino efectivo debe ser N+2 para que 3671 tenga espacio para sus 2 semestres
                 // y los prerequisitos tengan el valor_corchete correcto
-                // Ejemplo: Path 3667 → 3671 (N=2) → longitud efectiva = 4
-                // Esto permite que 904 (sin prereqs) tenga valor_corchete = 4
                 longitudEfectivaHasta3671 = longitudHasta3671 + 2;
             }
             

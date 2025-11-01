@@ -103,17 +103,27 @@ class PlanDeEstudios {
     }
 
     cuatrisMinimosHastaRecibirse() {
-        // Si 3671 está presente, el tiempo mínimo hasta recibirse se basa SOLO en el camino hasta 3671,
-        // no en cadenas no relacionadas (como 911→912). Las cadenas independientes se manejan
-        // en el ajuste posterior basado en si tienen dependientes.
+        // Calcular el camino más largo general (incluyendo todos los caminos)
+        const caminoMasLargoGeneral = this.encontrarCaminoMasLargo();
+        const longitudGeneral = caminoMasLargoGeneral.length;
+        
+        // Si 3671 está presente, verificar si está en el camino más largo
         if (this.materias[3671]) {
             const caminoHasta3671 = this.encontrarCaminoMasLargoHasta(3671);
-            if (caminoHasta3671.length > 0) {
-                return caminoHasta3671.length;
+            const longitudHasta3671 = caminoHasta3671.length;
+            
+            // Si 3671 está en el camino más largo general, usar ese
+            if (caminoMasLargoGeneral.includes(3671)) {
+                return longitudGeneral;
             }
+            
+            // Si no, comparar con el camino hasta 3671
+            // El cuatrisMinimos es el máximo entre el camino general y el camino hasta 3671
+            return Math.max(longitudGeneral, longitudHasta3671);
         }
+        
         // Si 3671 no está presente, usar el camino más largo general
-        return this.encontrarCaminoMasLargo().length;
+        return longitudGeneral;
     }
 
     calcularYGuardarLongitudes(semester = null) {
@@ -163,12 +173,20 @@ class PlanDeEstudios {
                 }
             }
             
-            // Si 3671 tiene el máximo (o está empatado), significa que está al final del camino
-            // y por lo tanto ocupará ambos cuatrimestres (primero y segundo)
+            // Solo aplicar el ajuste si 3671 tiene el máximo valor_corchete (o está empatado)
+            // Y también verificar que el camino hasta 3671 es el más largo (o al menos tan largo como otros)
+            // Esto asegura que solo ajustamos cuando 3671 está en el camino crítico
             const valorCorchete3671Original = this.datos_materias[3671].valor_corchete_original !== undefined
                 ? this.datos_materias[3671].valor_corchete_original
                 : valorCorchete3671;
-            if (valorCorchete3671Original === maxValorCorchete) {
+            
+            // Verificar que 3671 está en el camino más largo (o empatado)
+            const caminoMasLargo = this.encontrarCaminoMasLargo();
+            const longitudCaminoMasLargo = caminoMasLargo.length;
+            const longitudHasta3671 = this.encontrarCaminoMasLargoHasta(3671).length;
+            const estaEnCaminoMasLargo = caminoMasLargo.includes(3671) || longitudHasta3671 >= longitudCaminoMasLargo;
+            
+            if (valorCorchete3671Original === maxValorCorchete && estaEnCaminoMasLargo) {
                 // PASO 1: Ajustar materias sin dependientes no relacionados (pueden postergarse)
                 // Estas son las materias "finales" en cadenas independientes
                 // Encontrar todas las materias que NO tienen a 3671 en su camino hacia adelante

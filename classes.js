@@ -127,25 +127,34 @@ class PlanDeEstudios {
             if (semester === 1) {
                 // Find the path to 3671 (prerequisites)
                 const caminoHasta3671 = this.encontrarCaminoMasLargoHasta(3671);
-                // The path includes 3671, so we need to count semesters for prerequisites only
-                // Remove 3671 from the path first
+                // The path includes 3671 at the start (since encontrarCaminoMasLargoHasta returns reversed path)
+                // Remove 3671 from the path to count only prerequisites
                 const prerequisitosPath = caminoHasta3671.filter(id => id !== 3671);
-                const semestresPrerequisitos = this.contarSemestresEnCamino(prerequisitosPath, false);
                 
-                // If prerequisites end in an odd semester (Primero), we need to wait for the next Primero
-                // which adds 1 more semester
-                if (semestresPrerequisitos % 2 === 1) {
-                    // Prerequisites end in Primero (semester 1, 3, 5, ...)
-                    // 3671 must start in the NEXT Primero, so we need to add 1 semester gap
-                    // Total: prereqs + gap + 2 (for 3671)
-                    const totalWith3671 = semestresPrerequisitos + 1 + 2;
-                    semestres = Math.max(semestres, totalWith3671);
-                } else {
-                    // Prerequisites end in Segundo (even semester)
-                    // 3671 can start in the next semester (which is Primero)
-                    // Total: prereqs + 2 (for 3671)
-                    const totalWith3671 = semestresPrerequisitos + 2;
-                    semestres = Math.max(semestres, totalWith3671);
+                // Only apply parity adjustment if we have prerequisites
+                if (prerequisitosPath.length > 0) {
+                    const semestresPrerequisitos = this.contarSemestresEnCamino(prerequisitosPath, false);
+                    
+                    // Check if prerequisites end in an odd semester (Primero)
+                    // If semestresPrerequisitos is odd (1, 3, 5...), they end in Primero (semester 1, 3, 5...)
+                    // If semestresPrerequisitos is even (2, 4, 6...), they end in Segundo (semester 2, 4, 6...)
+                    const prerequisitosEndInPrimero = (semestresPrerequisitos % 2 === 1);
+                    
+                    if (prerequisitosEndInPrimero) {
+                        // Prerequisites end in Primero (odd semester like 1, 3, 5...)
+                        // 3671 must start in the NEXT Primero, so we need to add 1 semester gap
+                        // Example: If prereqs end in semester 1, 3671 starts in semester 3
+                        // Total: prereqs (1) + gap (1) + 3671 duration (2) = 4 semesters
+                        const totalWith3671 = semestresPrerequisitos + 1 + 2;
+                        semestres = Math.max(semestres, totalWith3671);
+                    } else {
+                        // Prerequisites end in Segundo (even semester like 2, 4, 6...)
+                        // The next semester is already Primero, so 3671 can start immediately
+                        // Example: If prereqs end in semester 2, 3671 starts in semester 3
+                        // Total: prereqs (2) + 3671 duration (2) = 4 semesters
+                        const totalWith3671 = semestresPrerequisitos + 2;
+                        semestres = Math.max(semestres, totalWith3671);
+                    }
                 }
             }
         }

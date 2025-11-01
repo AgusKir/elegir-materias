@@ -107,22 +107,14 @@ class PlanDeEstudios {
         const caminoMasLargoGeneral = this.encontrarCaminoMasLargo();
         const longitudGeneral = caminoMasLargoGeneral.length;
         
-        // Si 3671 está presente, verificar si está en el camino más largo O si el camino hasta 3671 es al menos tan largo
+        // Si 3671 está presente, SOLO ajustar si está EXPLÍCITAMENTE en el camino más largo como nodo terminal
+        // No ajustar solo porque el camino hasta 3671 es >= longest path
         if (this.materias[3671]) {
-            const caminoHasta3671 = this.encontrarCaminoMasLargoHasta(3671);
-            const longitudHasta3671 = caminoHasta3671.length;
+            // 3671 solo puede estar en el camino más largo si es el último nodo (no tiene dependientes)
+            const estaEnCaminoMasLargoComoTerminal = caminoMasLargoGeneral.length > 0 && caminoMasLargoGeneral[caminoMasLargoGeneral.length - 1] === 3671;
             
-            // Solo ajustar si el camino hasta 3671 es al menos tan largo como el camino general
-            // (es decir, si 3671 está en un camino que es al menos tan crítico como el más largo)
-            const estaEnCaminoCritico = caminoMasLargoGeneral.includes(3671) || longitudHasta3671 >= longitudGeneral;
-            
-            if (!estaEnCaminoCritico) {
-                // Si 3671 no está en el camino crítico, no afecta cuatrisMinimos
-                return longitudGeneral;
-            }
-            
-            // Si 3671 está en el camino más largo general, ajustar según el semester
-            if (caminoMasLargoGeneral.includes(3671)) {
+            // Si 3671 está en el camino más largo general como terminal, ajustar según el semester
+            if (estaEnCaminoMasLargoComoTerminal) {
                 if (semester !== null && semester !== undefined && parseInt(semester) === 2) {
                     // En Segundo, agregar solo 1 porque 3671 no puede empezar hasta el siguiente año
                     return longitudGeneral + 1;
@@ -132,26 +124,9 @@ class PlanDeEstudios {
                 }
             }
             
-            // Si no está en el camino más largo pero el camino hasta 3671 es al menos tan largo,
-            // calcular el camino efectivo hasta 3671
-            // IMPORTANTE: 3671 ocupa 2 cuatrimestres, así que el camino efectivo debe considerar esto
-            let longitudEfectivaHasta3671;
-            if (semester !== null && semester !== undefined && parseInt(semester) === 2) {
-                // En Segundo, 3671 solo puede empezar en el siguiente año, así que:
-                // - Path hasta 3671 (length N)
-                // - Desde ahora: siguiente Primero → siguiente Segundo (3671 starts) → año siguiente Primero (3671 finishes)
-                // - Total efectivo: N+1 semestres desde ahora
-                longitudEfectivaHasta3671 = longitudHasta3671 + 1;
-                // Asegurar mínimo 3 para casos sin prereqs
-                longitudEfectivaHasta3671 = Math.max(longitudEfectivaHasta3671, 3);
-            } else {
-                // En Primero, el camino efectivo debe ser N+2 para que 3671 tenga espacio para sus 2 semestres
-                // y los prerequisitos tengan el valor_corchete correcto
-                longitudEfectivaHasta3671 = longitudHasta3671 + 2;
-            }
-            
-            // El cuatrisMinimos es el máximo entre el camino general y el camino efectivo hasta 3671
-            return Math.max(longitudGeneral, longitudEfectivaHasta3671);
+            // Si 3671 NO está en el camino más largo, no afecta cuatrisMinimos
+            // (no considerar casos donde el camino hasta 3671 es >= longest path)
+            return longitudGeneral;
         }
         
         // Si 3671 no está presente, usar el camino más largo general
@@ -239,10 +214,16 @@ class PlanDeEstudios {
         if (this.datos_materias[3671]) {
             const valorCorchete3671 = this.datos_materias[3671].valor_corchete;
             
-            // Verificar si 3671 realmente afecta cuatrisMinimos comparando con el valor calculado
-            // PASO 3 solo debe ejecutarse si cuatrisMinimos es mayor que la longitud del camino más largo sin 3671
+            // Verificar si 3671 realmente afecta cuatrisMinimos
+            // PASO 3 solo debe ejecutarse si 3671 está EXPLÍCITAMENTE en el camino más largo
+            // Y cuatrisMinimos realmente es mayor cuando se incluye 3671
             const caminoMasLargo = this.encontrarCaminoMasLargo();
             const longitudCaminoMasLargo = caminoMasLargo.length;
+            
+            // Verificar explícitamente: 3671 solo puede estar en el camino más largo si es el último nodo
+            // (porque 3671 no tiene dependientes, así que solo puede aparecer como terminal)
+            // Debe ser el ÚLTIMO elemento del camino más largo, no solo incluido en algún lugar
+            const estaEnCaminoMasLargo = caminoMasLargo.length > 0 && caminoMasLargo[caminoMasLargo.length - 1] === 3671;
             
             // Calcular cuatrisMinimos sin considerar 3671: simplemente la longitud del camino más largo
             const cuatrisMinimosSin3671 = longitudCaminoMasLargo;
@@ -250,16 +231,13 @@ class PlanDeEstudios {
             // cuatrisMinimos ya está calculado con 3671 considerando sus efectos
             const cuatrisMinimosCon3671 = cuatrisMinimos;
             
-            // PASO 3 solo debe ejecutarse si 3671 realmente incrementa cuatrisMinimos
-            // Y además, solo si 3671 está explícitamente en el camino más largo
-            // (no solo si el camino hasta 3671 es >= longest path)
-            const estaEnCaminoMasLargo = caminoMasLargo.includes(3671);
-            const realmenteAfectaCuatrisMinimos = estaEnCaminoMasLargo && cuatrisMinimosCon3671 > cuatrisMinimosSin3671;
-            
-            // PASO 3: Ajustar prerrequisitos de 3671 SOLO cuando 3671 realmente incrementa cuatrisMinimos
-            // Como 3671 ocupa 2 semestres, sus prerrequisitos deben completarse 1 semestre antes
-            // Pero solo cuando 3671 realmente afecta cuatrisMinimos (lo incrementa)
-            if (realmenteAfectaCuatrisMinimos) {
+            // PASO 3 SOLO se ejecuta si:
+            // 1. 3671 está explícitamente en el camino más largo (como nodo terminal)
+            // 2. Y cuatrisMinimos realmente es mayor cuando se incluye 3671
+            // Si 3671 NO está en el camino más largo, NO ejecutar PASO 3 (definitivamente)
+            if (estaEnCaminoMasLargo && cuatrisMinimosCon3671 > cuatrisMinimosSin3671) {
+                // PASO 3: Ajustar prerrequisitos de 3671 SOLO cuando 3671 realmente incrementa cuatrisMinimos
+                // Como 3671 ocupa 2 semestres, sus prerrequisitos deben completarse 1 semestre antes
                 const materia3671 = this.materias[3671];
                 const valorCorchete3671Final = this.datos_materias[3671].valor_corchete;
                 for (const prereqId of materia3671.anteriores) {
@@ -278,6 +256,7 @@ class PlanDeEstudios {
                     }
                 }
             }
+            // Si 3671 NO está en el camino más largo, PASO 3 NO se ejecuta (no hacer nada)
             
             // Ajustar materias no relacionadas SOLO si 3671 tiene el máximo valor_corchete (o está empatado)
             // Encontrar el máximo valor_corchete (usando valor_corchete_original para comparación justa)
@@ -297,7 +276,7 @@ class PlanDeEstudios {
             
             // Para PASO 1 y PASO 2 (ajustar materias no relacionadas), necesitamos que 3671 tenga el máximo valor_corchete
             // Y también que esté explícitamente en el camino más largo (misma verificación que PASO 3)
-            if (valorCorchete3671Original === maxValorCorchete && estaEnCaminoCritico) {
+            if (valorCorchete3671Original === maxValorCorchete && estaEnCaminoMasLargo && cuatrisMinimosCon3671 > cuatrisMinimosSin3671) {
                 // PASO 1: Ajustar materias sin dependientes no relacionados (pueden postergarse)
                 // Estas son las materias "finales" en cadenas independientes
                 // Encontrar todas las materias que NO tienen a 3671 en su camino hacia adelante

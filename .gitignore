@@ -1,1 +1,4 @@
 *.code-workspace
+analyze_expected.html
+check_paths.html
+verify_hypothesis.html

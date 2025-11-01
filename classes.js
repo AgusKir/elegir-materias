@@ -107,35 +107,14 @@ class PlanDeEstudios {
         const caminoMasLargoGeneral = this.encontrarCaminoMasLargo();
         const longitudGeneral = caminoMasLargoGeneral.length;
         
-        // Si 3671 está presente, SOLO ajustar si está EXPLÍCITAMENTE en el camino más largo como nodo terminal
-        // No ajustar solo porque el camino hasta 3671 es >= longest path
-        if (this.materias[3671]) {
-            // 3671 solo puede estar en el camino más largo si es el último nodo (no tiene dependientes)
-            const estaEnCaminoMasLargoComoTerminal = caminoMasLargoGeneral.length > 0 && caminoMasLargoGeneral[caminoMasLargoGeneral.length - 1] === 3671;
-            
-            // Si 3671 está en el camino más largo general como terminal, ajustar según el semester
-            if (estaEnCaminoMasLargoComoTerminal) {
-                if (semester !== null && semester !== undefined && parseInt(semester) === 2) {
-                    // En Segundo, agregar solo 1 porque 3671 no puede empezar hasta el siguiente año
-                    return longitudGeneral + 1;
-                } else {
-                    // En Primero, agregar 2 porque 3671 puede empezar inmediatamente y ocupa 2 semestres
-                    return longitudGeneral + 2;
-                }
-            }
-            
-            // Si 3671 NO está en el camino más largo, no afecta cuatrisMinimos
-            // (no considerar casos donde el camino hasta 3671 es >= longest path)
-            return longitudGeneral;
-        }
-        
-        // Si 3671 no está presente, usar el camino más largo general
+        // Simply return the length of the longest path
+        // The adjustment for subjects not leading to 3671 will be done in calcularYGuardarLongitudes
         return longitudGeneral;
     }
 
     calcularYGuardarLongitudes(semester = null) {
         this.datos_materias = {};
-        const cuatrisMinimos = this.cuatrisMinimosHastaRecibirse(semester);
+        const cuatrisMinimosBase = this.cuatrisMinimosHastaRecibirse(semester);
         const longitudes = {};
 
         // Calcular longitudes
@@ -152,6 +131,18 @@ class PlanDeEstudios {
                 longitudes[longitud].forEach(id_materia => {
                     const cantMateriasAntes = this.encontrarCaminoMasLargoHasta(id_materia).length - 1;
                     const cantMateriasDespues = this.encontrarCaminoMasLargoDesde(id_materia).length - 1;
+                    
+                    // Determine effective cuatrisMinimos for this subject
+                    // If 3671 exists and this subject leads to it, use cuatrisMinimosBase
+                    // Otherwise, add 1 to account for independent path
+                    let cuatrisMinimos = cuatrisMinimosBase;
+                    if (this.materias[3671]) {
+                        const tiene3671Adelante = this.esAlcanzableDesde(id_materia, 3671);
+                        if (!tiene3671Adelante) {
+                            cuatrisMinimos = cuatrisMinimosBase + 1;
+                        }
+                    }
+                    
                     const valorCorchete = cuatrisMinimos - (cantMateriasAntes + cantMateriasDespues);
                     const cuatrimestre = cuatrisMinimos - parseInt(longitud) + 1;
 
@@ -171,243 +162,9 @@ class PlanDeEstudios {
         if (this.datos_materias[3671]) {
             const valorCorchete3671 = this.datos_materias[3671].valor_corchete;
             
-            // El valor_corchete de 3671 no puede ser igual a cuatrisMinimos
-            // porque 3671 toma 2 cuatrimestres, así que terminaría después de cuatrisMinimos
-            // Por lo tanto, debe ser como máximo cuatrisMinimos - 1
-            let valorCorcheteAjustado = Math.min(valorCorchete3671, cuatrisMinimos - 1);
-            
-            // Además, debe ser compatible con el cuatrimestre seleccionado:
-            // - Si semester es "Primero" (1): valor_corchete debe ser impar
-            // - Si semester es "Segundo" (2): valor_corchete debe ser par
-            if (semester !== null && semester !== undefined) {
-                const semesterNum = parseInt(semester);
-                if (semesterNum === 1) {
-                    // Primero: debe ser impar
-                    if (valorCorcheteAjustado % 2 === 0 && valorCorcheteAjustado > 0) {
-                        valorCorcheteAjustado = valorCorcheteAjustado - 1;
-                    }
-                } else if (semesterNum === 2) {
-                    // Segundo: debe ser par
-                    if (valorCorcheteAjustado % 2 === 1) {
-                        valorCorcheteAjustado = Math.max(0, valorCorcheteAjustado - 1);
-                    }
-                }
-            }
-            
-            // Asegurar que no sea negativo
-            valorCorcheteAjustado = Math.max(1, valorCorcheteAjustado);
-            
-            // Aplicar el ajuste
-            if (valorCorcheteAjustado !== valorCorchete3671) {
-                this.datos_materias[3671].valor_corchete = valorCorcheteAjustado;
-                if (this.datos_materias[3671].valor_corchete_original !== undefined) {
-                    this.datos_materias[3671].valor_corchete_original = valorCorcheteAjustado;
-                }
-                // Actualizar cuatrimestre para que coincida con el nuevo valor_corchete
-                // Esto asegura que la condición de readiness funcione correctamente
-                this.datos_materias[3671].cuatrimestre = valorCorcheteAjustado;
-            }
-        }
-        
-        // Si 3671 existe, verificar si está en el camino crítico y ajustar según corresponda
-        // IMPORTANTE: 3671 ocupa DOS cuatrimestres (empieza en primero, termina en segundo)
-        if (this.datos_materias[3671]) {
-            const valorCorchete3671 = this.datos_materias[3671].valor_corchete;
-            
-            // Verificar si 3671 realmente afecta cuatrisMinimos
-            // PASO 3 solo debe ejecutarse si 3671 está EXPLÍCITAMENTE en el camino más largo
-            // Y cuatrisMinimos realmente es mayor cuando se incluye 3671
-            const caminoMasLargo = this.encontrarCaminoMasLargo();
-            const longitudCaminoMasLargo = caminoMasLargo.length;
-            
-            // Verificar explícitamente: 3671 solo puede estar en el camino más largo si es el último nodo
-            // (porque 3671 no tiene dependientes, así que solo puede aparecer como terminal)
-            // Debe ser el ÚLTIMO elemento del camino más largo, no solo incluido en algún lugar
-            const estaEnCaminoMasLargo = caminoMasLargo.length > 0 && caminoMasLargo[caminoMasLargo.length - 1] === 3671;
-            
-            // Calcular cuatrisMinimos sin considerar 3671: simplemente la longitud del camino más largo
-            const cuatrisMinimosSin3671 = longitudCaminoMasLargo;
-            
-            // cuatrisMinimos ya está calculado con 3671 considerando sus efectos
-            const cuatrisMinimosCon3671 = cuatrisMinimos;
-            
-            // PASO 3 SOLO se ejecuta si:
-            // 1. 3671 está explícitamente en el camino más largo (como nodo terminal)
-            // 2. Y cuatrisMinimos realmente es mayor cuando se incluye 3671
-            // Si 3671 NO está en el camino más largo, NO ejecutar PASO 3 (definitivamente)
-            if (estaEnCaminoMasLargo && cuatrisMinimosCon3671 > cuatrisMinimosSin3671) {
-                // PASO 3: Ajustar prerrequisitos de 3671 SOLO cuando 3671 realmente incrementa cuatrisMinimos
-                // Como 3671 ocupa 2 semestres, sus prerrequisitos deben completarse 1 semestre antes
-                const materia3671 = this.materias[3671];
-                const valorCorchete3671Final = this.datos_materias[3671].valor_corchete;
-                for (const prereqId of materia3671.anteriores) {
-                    if (this.materias[prereqId] && this.datos_materias[prereqId]) {
-                        // El prerrequisito debe tener valor_corchete = valor_corchete_de_3671 - 1
-                        // Esto asegura que el prereq se complete un semestre antes de que 3671 empiece
-                        const valorCorcheteDeseado = valorCorchete3671Final - 1;
-                        
-                        if (valorCorcheteDeseado >= 1) {
-                            this.datos_materias[prereqId].valor_corchete = valorCorcheteDeseado;
-                            if (this.datos_materias[prereqId].valor_corchete_original !== undefined) {
-                                this.datos_materias[prereqId].valor_corchete_original = valorCorcheteDeseado;
-                            }
-                            this.datos_materias[prereqId].cuatrimestre = valorCorcheteDeseado;
-                        }
-                    }
-                }
-            }
-            // Si 3671 NO está en el camino más largo, PASO 3 NO se ejecuta (no hacer nada)
-            
-            // Ajustar materias no relacionadas SOLO si 3671 tiene el máximo valor_corchete (o está empatado)
-            // Encontrar el máximo valor_corchete (usando valor_corchete_original para comparación justa)
-            let maxValorCorchete = -Infinity;
-            for (const id_materia in this.datos_materias) {
-                const vc = this.datos_materias[id_materia].valor_corchete_original !== undefined 
-                    ? this.datos_materias[id_materia].valor_corchete_original 
-                    : this.datos_materias[id_materia].valor_corchete;
-                if (vc > maxValorCorchete) {
-                    maxValorCorchete = vc;
-                }
-            }
-            
-            const valorCorchete3671Original = this.datos_materias[3671].valor_corchete_original !== undefined
-                ? this.datos_materias[3671].valor_corchete_original
-                : valorCorchete3671;
-            
-            // Para PASO 1 y PASO 2 (ajustar materias no relacionadas), necesitamos que 3671 tenga el máximo valor_corchete
-            // Y también que esté explícitamente en el camino más largo (misma verificación que PASO 3)
-            if (valorCorchete3671Original === maxValorCorchete && estaEnCaminoMasLargo && cuatrisMinimosCon3671 > cuatrisMinimosSin3671) {
-                // PASO 1: Ajustar materias sin dependientes no relacionados (pueden postergarse)
-                // Estas son las materias "finales" en cadenas independientes
-                // Encontrar todas las materias que NO tienen a 3671 en su camino hacia adelante
-                for (const id_materia in this.datos_materias) {
-                    const id = parseInt(id_materia);
-                    if (id === 3671) continue; // No modificar 3671 a sí mismo
-                    
-                    // Solo procesar si la materia está en el grafo actual (no completada)
-                    if (!this.materias[id]) continue;
-                    
-                    // Verificar si 3671 es alcanzable desde esta materia
-                    const tiene3671Adelante = this.esAlcanzableDesde(id, 3671);
-                    
-                    // Si NO tiene 3671 adelante, puede potencialmente ser postergada
-                    if (!tiene3671Adelante) {
-                        const materia = this.materias[id];
-                        let puedePostergarse = true;
-                        
-                        // Verificar prerrequisitos pendientes: solo bloqueamos si el prereq está relacionado con 3671
-                        // Si tiene prerequisitos no relacionados con 3671, puede postergarse (ambos se ajustarán juntos)
-                        let tienePrerequisitosRelacionadosCon3671 = false;
-                        for (const prereqId of materia.anteriores) {
-                            if (this.materias[prereqId]) {
-                                const prereqTiene3671Adelante = this.esAlcanzableDesde(prereqId, 3671);
-                                if (prereqTiene3671Adelante) {
-                                    tienePrerequisitosRelacionadosCon3671 = true;
-                                    puedePostergarse = false;
-                                    break;
-                                }
-                            }
-                        }
-                        
-                        // Verificar dependientes: si tiene un dependiente pendiente que NO está relacionado con 3671,
-                        // entonces NO puede postergarse directamente (se ajustará en PASO 2)
-                        if (puedePostergarse) {
-                            for (const dependienteId of materia.posteriores) {
-                                if (this.materias[dependienteId]) {
-                                    const dependienteTiene3671Adelante = this.esAlcanzableDesde(dependienteId, 3671);
-                                    if (!dependienteTiene3671Adelante) {
-                                        // Tiene dependiente no relacionado, no postergar ahora (se manejará en PASO 2)
-                                        puedePostergarse = false;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // Solo postergar si no tiene dependientes no relacionados ni prerequisitos relacionados con 3671
-                        // El ajuste depende del cuatrimestre seleccionado:
-                        // - Si es "Primero" (1): +1 (3671 ocupará Primero y Segundo del mismo año)
-                        // - Si es "Segundo" (2): +2 (3671 ocupará Primero y Segundo del año siguiente)
-                        if (puedePostergarse) {
-                            // Asegurar que semester es un número para la comparación
-                            const semesterNum = semester !== null && semester !== undefined ? parseInt(semester) : null;
-                            const ajuste = (semesterNum === 2) ? 2 : 1;
-                            // El ajuste debe asegurar que la materia tenga valor_corchete de 2 (Primero) o 3 (Segundo)
-                            // para que sus prerrequisitos puedan tener 1 o 2 respectivamente
-                            // Si el valor inicial es 0, necesitamos +2 o +3 para llegar a 2 o 3
-                            // Si el valor inicial es 1, necesitamos +1 o +2 para llegar a 2 o 3
-                            const valorActual = this.datos_materias[id].valor_corchete;
-                            const valorObjetivo = (semesterNum === 2) ? 3 : 2;
-                            const ajusteNecesario = valorObjetivo - valorActual;
-                            if (ajusteNecesario > 0) {
-                                this.datos_materias[id].valor_corchete = valorObjetivo;
-                            }
-                        }
-                    }
-                }
-                
-                // PASO 2: Propagar hacia atrás en cadenas de prerrequisitos no relacionadas con 3671
-                // Para materias que tienen dependientes no relacionados, su valor_corchete debe ser
-                // uno menos que el mínimo valor_corchete de sus dependientes
-                // Iterar hasta que no haya más cambios (para manejar cadenas largas)
-                let cambioRealizado = true;
-                let iteraciones = 0;
-                const maxIteraciones = 20; // Prevenir loops infinitos
-                
-                while (cambioRealizado && iteraciones < maxIteraciones) {
-                    cambioRealizado = false;
-                    iteraciones++;
-                    
-                    for (const id_materia in this.datos_materias) {
-                        const id = parseInt(id_materia);
-                        if (id === 3671) continue;
-                        if (!this.materias[id]) continue;
-                        
-                        const tiene3671Adelante = this.esAlcanzableDesde(id, 3671);
-                        if (!tiene3671Adelante) {
-                            // Esta materia no está relacionada con 3671
-                            const materia = this.materias[id];
-                            let minValorCorcheteDependientes = Infinity;
-                            let tieneDependientesNoRelacionados = false;
-                            
-                            // Encontrar el mínimo valor_corchete entre sus dependientes no relacionados
-                            // IMPORTANTE: Usar el valor_corchete ya ajustado en PASO 1
-                            for (const dependienteId of materia.posteriores) {
-                                if (this.materias[dependienteId]) {
-                                    const dependienteTiene3671Adelante = this.esAlcanzableDesde(dependienteId, 3671);
-                                    if (!dependienteTiene3671Adelante) {
-                                        // El dependiente no está relacionado con 3671
-                                        tieneDependientesNoRelacionados = true;
-                                        // Usar valor_corchete (ya ajustado en PASO 1), no valor_corchete_original
-                                        const valorCorcheteDependiente = this.datos_materias[dependienteId].valor_corchete;
-                                        if (valorCorcheteDependiente < minValorCorcheteDependientes) {
-                                            minValorCorcheteDependientes = valorCorcheteDependiente;
-                                        }
-                                    }
-                                }
-                            }
-                            
-                            // Si tiene dependientes no relacionados, su valor_corchete debe ser uno menos
-                            // que el mínimo valor_corchete de sus dependientes
-                            if (tieneDependientesNoRelacionados && minValorCorcheteDependientes !== Infinity) {
-                                const valorCorcheteDeseado = minValorCorcheteDependientes - 1;
-                                // Comparar con valor_corchete actual (no solo si es menor)
-                                if (this.datos_materias[id].valor_corchete !== valorCorcheteDeseado) {
-                                    // Ajustar para que tenga el valor_corchete correcto
-                                    this.datos_materias[id].valor_corchete = valorCorcheteDeseado;
-                                    // También actualizar valor_corchete_original
-                                    if (this.datos_materias[id].valor_corchete_original !== undefined) {
-                                        this.datos_materias[id].valor_corchete_original = valorCorcheteDeseado;
-                                    }
-                                    // Actualizar cuatrimestre para que coincida con el nuevo valor_corchete
-                                    this.datos_materias[id].cuatrimestre = valorCorcheteDeseado;
-                                    cambioRealizado = true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            // For subjects leading to 3671, use cuatrisMinimosBase
+            // For others, cuatrisMinimos is already adjusted (+1)
+            // So no additional adjustment needed here
         }
     }
 

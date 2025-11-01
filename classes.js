@@ -103,6 +103,15 @@ class PlanDeEstudios {
     }
 
     cuatrisMinimosHastaRecibirse() {
+        // Si 3671 está presente, el tiempo mínimo hasta recibirse se basa en el camino hasta 3671,
+        // no en cadenas no relacionadas (como 911→912)
+        if (this.materias[3671]) {
+            const caminoHasta3671 = this.encontrarCaminoMasLargoHasta(3671);
+            if (caminoHasta3671.length > 0) {
+                return caminoHasta3671.length;
+            }
+        }
+        // Si 3671 no está presente, usar el camino más largo general
         return this.encontrarCaminoMasLargo().length;
     }
 

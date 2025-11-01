@@ -234,12 +234,40 @@ class PlanDeEstudios {
             }
         }
         
-        // Si 3671 existe y tiene el máximo valor_corchete (o está empatado), ajustar materias no relacionadas
+        // Si 3671 existe, verificar si está en el camino crítico y ajustar según corresponda
         // IMPORTANTE: 3671 ocupa DOS cuatrimestres (empieza en primero, termina en segundo)
-        // Por lo tanto, las materias no relacionadas pueden ser postergadas un cuatrimestre SOLO si no tienen
-        // prerrequisitos pendientes que las obliguen a estar en el primer cuatrimestre
         if (this.datos_materias[3671]) {
             const valorCorchete3671 = this.datos_materias[3671].valor_corchete;
+            
+            // Verificar que 3671 está en el camino más largo (o empatado)
+            const caminoMasLargo = this.encontrarCaminoMasLargo();
+            const longitudCaminoMasLargo = caminoMasLargo.length;
+            const longitudHasta3671 = this.encontrarCaminoMasLargoHasta(3671).length;
+            const estaEnCaminoMasLargo = caminoMasLargo.includes(3671) || longitudHasta3671 >= longitudCaminoMasLargo;
+            
+            // PASO 3: Ajustar prerrequisitos de 3671 SIEMPRE que esté en el camino crítico
+            // Como 3671 ocupa 2 semestres, sus prerrequisitos deben completarse 1 semestre antes
+            if (estaEnCaminoMasLargo) {
+                const materia3671 = this.materias[3671];
+                const valorCorchete3671Final = this.datos_materias[3671].valor_corchete;
+                for (const prereqId of materia3671.anteriores) {
+                    if (this.materias[prereqId] && this.datos_materias[prereqId]) {
+                        // El prerrequisito debe tener valor_corchete = valor_corchete_de_3671 - 1
+                        // Esto asegura que el prereq se complete un semestre antes de que 3671 empiece
+                        const valorCorcheteDeseado = valorCorchete3671Final - 1;
+                        
+                        if (valorCorcheteDeseado >= 1) {
+                            this.datos_materias[prereqId].valor_corchete = valorCorcheteDeseado;
+                            if (this.datos_materias[prereqId].valor_corchete_original !== undefined) {
+                                this.datos_materias[prereqId].valor_corchete_original = valorCorcheteDeseado;
+                            }
+                            this.datos_materias[prereqId].cuatrimestre = valorCorcheteDeseado;
+                        }
+                    }
+                }
+            }
+            
+            // Ajustar materias no relacionadas SOLO si 3671 tiene el máximo valor_corchete (o está empatado)
             // Encontrar el máximo valor_corchete (usando valor_corchete_original para comparación justa)
             let maxValorCorchete = -Infinity;
             for (const id_materia in this.datos_materias) {
@@ -251,18 +279,9 @@ class PlanDeEstudios {
                 }
             }
             
-            // Solo aplicar el ajuste si 3671 tiene el máximo valor_corchete (o está empatado)
-            // Y también verificar que el camino hasta 3671 es el más largo (o al menos tan largo como otros)
-            // Esto asegura que solo ajustamos cuando 3671 está en el camino crítico
             const valorCorchete3671Original = this.datos_materias[3671].valor_corchete_original !== undefined
                 ? this.datos_materias[3671].valor_corchete_original
                 : valorCorchete3671;
-            
-            // Verificar que 3671 está en el camino más largo (o empatado)
-            const caminoMasLargo = this.encontrarCaminoMasLargo();
-            const longitudCaminoMasLargo = caminoMasLargo.length;
-            const longitudHasta3671 = this.encontrarCaminoMasLargoHasta(3671).length;
-            const estaEnCaminoMasLargo = caminoMasLargo.includes(3671) || longitudHasta3671 >= longitudCaminoMasLargo;
             
             if (valorCorchete3671Original === maxValorCorchete && estaEnCaminoMasLargo) {
                 // PASO 1: Ajustar materias sin dependientes no relacionados (pueden postergarse)
@@ -392,29 +411,6 @@ class PlanDeEstudios {
                                     cambioRealizado = true;
                                 }
                             }
-                        }
-                    }
-                }
-                
-                // PASO 3: Ajustar prerrequisitos de 3671
-                // Como 3671 ocupa 2 semestres, sus prerrequisitos deben completarse 1 semestre antes
-                // para asegurar que 3671 pueda empezar a tiempo
-                // IMPORTANTE: Solo ajustar si 3671 está en el camino crítico (ya estamos dentro del if que verifica esto)
-                const materia3671 = this.materias[3671];
-                const valorCorchete3671 = this.datos_materias[3671].valor_corchete;
-                for (const prereqId of materia3671.anteriores) {
-                    if (this.materias[prereqId] && this.datos_materias[prereqId]) {
-                        // El prerrequisito debe tener valor_corchete = valor_corchete_de_3671 - 1
-                        // Esto asegura que el prereq se complete un semestre antes de que 3671 empiece
-                        // Siempre ajustar (sin verificar si es menor) porque 3671 ocupa 2 semestres
-                        const valorCorcheteDeseado = valorCorchete3671 - 1;
-                        
-                        if (valorCorcheteDeseado >= 1) {
-                            this.datos_materias[prereqId].valor_corchete = valorCorcheteDeseado;
-                            if (this.datos_materias[prereqId].valor_corchete_original !== undefined) {
-                                this.datos_materias[prereqId].valor_corchete_original = valorCorcheteDeseado;
-                            }
-                            this.datos_materias[prereqId].cuatrimestre = valorCorcheteDeseado;
                         }
                     }
                 }

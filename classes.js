@@ -188,10 +188,13 @@ class PlanDeEstudios {
                         let puedePostergarse = true;
                         
                         // Verificar prerrequisitos pendientes: solo bloqueamos si el prereq está relacionado con 3671
+                        // Si tiene prerequisitos no relacionados con 3671, puede postergarse (ambos se ajustarán juntos)
+                        let tienePrerequisitosRelacionadosCon3671 = false;
                         for (const prereqId of materia.anteriores) {
                             if (this.materias[prereqId]) {
                                 const prereqTiene3671Adelante = this.esAlcanzableDesde(prereqId, 3671);
                                 if (prereqTiene3671Adelante) {
+                                    tienePrerequisitosRelacionadosCon3671 = true;
                                     puedePostergarse = false;
                                     break;
                                 }
@@ -221,7 +224,16 @@ class PlanDeEstudios {
                             // Asegurar que semester es un número para la comparación
                             const semesterNum = semester !== null && semester !== undefined ? parseInt(semester) : null;
                             const ajuste = (semesterNum === 2) ? 2 : 1;
-                            this.datos_materias[id].valor_corchete += ajuste;
+                            // El ajuste debe asegurar que la materia tenga valor_corchete de 2 (Primero) o 3 (Segundo)
+                            // para que sus prerrequisitos puedan tener 1 o 2 respectivamente
+                            // Si el valor inicial es 0, necesitamos +2 o +3 para llegar a 2 o 3
+                            // Si el valor inicial es 1, necesitamos +1 o +2 para llegar a 2 o 3
+                            const valorActual = this.datos_materias[id].valor_corchete;
+                            const valorObjetivo = (semesterNum === 2) ? 3 : 2;
+                            const ajusteNecesario = valorObjetivo - valorActual;
+                            if (ajusteNecesario > 0) {
+                                this.datos_materias[id].valor_corchete = valorObjetivo;
+                            }
                         }
                     }
                 }

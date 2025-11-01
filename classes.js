@@ -169,47 +169,8 @@ class PlanDeEstudios {
                 ? this.datos_materias[3671].valor_corchete_original
                 : valorCorchete3671;
             if (valorCorchete3671Original === maxValorCorchete) {
-                // PASO 1: Ajustar materias en cadenas de prerrequisitos no relacionadas con 3671
-                // Estas materias necesitan tener valor_corchete que refleje su posición en su propia cadena
-                // Primero, encontramos todas las materias no relacionadas y ajustamos sus valores base
-                for (const id_materia in this.datos_materias) {
-                    const id = parseInt(id_materia);
-                    if (id === 3671) continue;
-                    if (!this.materias[id]) continue;
-                    
-                    const tiene3671Adelante = this.esAlcanzableDesde(id, 3671);
-                    if (!tiene3671Adelante) {
-                        // Esta materia no está relacionada con 3671
-                        // Si tiene dependientes no relacionados, necesita estar lista en el primer cuatrimestre
-                        const materia = this.materias[id];
-                        let tieneDependientesNoRelacionados = false;
-                        for (const dependienteId of materia.posteriores) {
-                            if (this.materias[dependienteId]) {
-                                const dependienteTiene3671Adelante = this.esAlcanzableDesde(dependienteId, 3671);
-                                if (!dependienteTiene3671Adelante) {
-                                    tieneDependientesNoRelacionados = true;
-                                    break;
-                                }
-                            }
-                        }
-                        // Si tiene dependientes no relacionados, su valor_corchete debe ser al menos 1
-                        // para reflejar que debe estar en el primer cuatrimestre
-                        if (tieneDependientesNoRelacionados && this.datos_materias[id].valor_corchete < 1) {
-                            // Ajustar para que tenga valor_corchete mínimo de 1
-                            const ajusteNecesario = 1 - this.datos_materias[id].valor_corchete;
-                            this.datos_materias[id].valor_corchete += ajusteNecesario;
-                            // También actualizar valor_corchete_original si es necesario
-                            if (this.datos_materias[id].valor_corchete_original !== undefined) {
-                                this.datos_materias[id].valor_corchete_original += ajusteNecesario;
-                            }
-                            // Actualizar cuatrimestre para que coincida con el nuevo valor_corchete
-                            // Si valor_corchete es 1, entonces cuatrimestre también debe ser 1
-                            this.datos_materias[id].cuatrimestre = this.datos_materias[id].valor_corchete;
-                        }
-                    }
-                }
-                
-                // PASO 2: Ajustar materias sin dependientes no relacionados (pueden postergarse)
+                // PASO 1: Ajustar materias sin dependientes no relacionados (pueden postergarse)
+                // Estas son las materias "finales" en cadenas independientes
                 // Encontrar todas las materias que NO tienen a 3671 en su camino hacia adelante
                 for (const id_materia in this.datos_materias) {
                     const id = parseInt(id_materia);
@@ -238,13 +199,13 @@ class PlanDeEstudios {
                         }
                         
                         // Verificar dependientes: si tiene un dependiente pendiente que NO está relacionado con 3671,
-                        // entonces NO puede postergarse (ya fue ajustado en PASO 1)
+                        // entonces NO puede postergarse directamente (se ajustará en PASO 2)
                         if (puedePostergarse) {
                             for (const dependienteId of materia.posteriores) {
                                 if (this.materias[dependienteId]) {
                                     const dependienteTiene3671Adelante = this.esAlcanzableDesde(dependienteId, 3671);
                                     if (!dependienteTiene3671Adelante) {
-                                        // Tiene dependiente no relacionado, ya fue ajustado en PASO 1, no postergar
+                                        // Tiene dependiente no relacionado, no postergar ahora (se manejará en PASO 2)
                                         puedePostergarse = false;
                                         break;
                                     }
@@ -259,6 +220,54 @@ class PlanDeEstudios {
                         if (puedePostergarse) {
                             const ajuste = (semester === 2) ? 2 : 1;
                             this.datos_materias[id].valor_corchete += ajuste;
+                        }
+                    }
+                }
+                
+                // PASO 2: Propagar hacia atrás en cadenas de prerrequisitos no relacionadas con 3671
+                // Para materias que tienen dependientes no relacionados, su valor_corchete debe ser
+                // uno menos que el mínimo valor_corchete de sus dependientes
+                for (const id_materia in this.datos_materias) {
+                    const id = parseInt(id_materia);
+                    if (id === 3671) continue;
+                    if (!this.materias[id]) continue;
+                    
+                    const tiene3671Adelante = this.esAlcanzableDesde(id, 3671);
+                    if (!tiene3671Adelante) {
+                        // Esta materia no está relacionada con 3671
+                        const materia = this.materias[id];
+                        let minValorCorcheteDependientes = Infinity;
+                        let tieneDependientesNoRelacionados = false;
+                        
+                        // Encontrar el mínimo valor_corchete entre sus dependientes no relacionados
+                        for (const dependienteId of materia.posteriores) {
+                            if (this.materias[dependienteId]) {
+                                const dependienteTiene3671Adelante = this.esAlcanzableDesde(dependienteId, 3671);
+                                if (!dependienteTiene3671Adelante) {
+                                    // El dependiente no está relacionado con 3671
+                                    tieneDependientesNoRelacionados = true;
+                                    const valorCorcheteDependiente = this.datos_materias[dependienteId].valor_corchete;
+                                    if (valorCorcheteDependiente < minValorCorcheteDependientes) {
+                                        minValorCorcheteDependientes = valorCorcheteDependiente;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Si tiene dependientes no relacionados, su valor_corchete debe ser uno menos
+                        if (tieneDependientesNoRelacionados && minValorCorcheteDependientes !== Infinity) {
+                            const valorCorcheteDeseado = minValorCorcheteDependientes - 1;
+                            if (this.datos_materias[id].valor_corchete < valorCorcheteDeseado) {
+                                // Ajustar para que tenga el valor_corchete correcto
+                                const ajusteNecesario = valorCorcheteDeseado - this.datos_materias[id].valor_corchete;
+                                this.datos_materias[id].valor_corchete += ajusteNecesario;
+                                // También actualizar valor_corchete_original si es necesario
+                                if (this.datos_materias[id].valor_corchete_original !== undefined) {
+                                    this.datos_materias[id].valor_corchete_original += ajusteNecesario;
+                                }
+                                // Actualizar cuatrimestre para que coincida con el nuevo valor_corchete
+                                this.datos_materias[id].cuatrimestre = this.datos_materias[id].valor_corchete;
+                            }
                         }
                     }
                 }

@@ -401,16 +401,15 @@ class PlanDeEstudios {
                 // para asegurar que 3671 pueda empezar a tiempo
                 // IMPORTANTE: Solo ajustar si 3671 está en el camino crítico (ya estamos dentro del if que verifica esto)
                 const materia3671 = this.materias[3671];
+                const valorCorchete3671 = this.datos_materias[3671].valor_corchete;
                 for (const prereqId of materia3671.anteriores) {
                     if (this.materias[prereqId] && this.datos_materias[prereqId]) {
                         // El prerrequisito debe tener valor_corchete = valor_corchete_de_3671 - 1
-                        // Esto asegura que el prereq se complete antes de que 3671 empiece
-                        const valorCorchete3671 = this.datos_materias[3671].valor_corchete;
+                        // Esto asegura que el prereq se complete un semestre antes de que 3671 empiece
+                        // Siempre ajustar (sin verificar si es menor) porque 3671 ocupa 2 semestres
                         const valorCorcheteDeseado = valorCorchete3671 - 1;
-                        const valorCorcheteActual = this.datos_materias[prereqId].valor_corchete;
                         
-                        if (valorCorcheteDeseado < valorCorcheteActual && valorCorcheteDeseado >= 1) {
-                            // Solo ajustar si el valor deseado es menor y válido
+                        if (valorCorcheteDeseado >= 1) {
                             this.datos_materias[prereqId].valor_corchete = valorCorcheteDeseado;
                             if (this.datos_materias[prereqId].valor_corchete_original !== undefined) {
                                 this.datos_materias[prereqId].valor_corchete_original = valorCorcheteDeseado;

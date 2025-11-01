@@ -130,12 +130,14 @@ class PlanDeEstudios {
 
                     this.datos_materias[id_materia] = {
                         cuatrimestre: cuatrimestre,
-                        valor_corchete: valorCorchete
+                        valor_corchete: valorCorchete,
+                        valor_corchete_original: valorCorchete // Guardar el valor original para la condición de readiness
                     };
                 });
             });
 
         // Si 3671 existe y tiene el máximo valor_corchete (o está empatado), aumentar +1 a materias no relacionadas
+        // IMPORTANTE: Verificar si 3671 tiene el máximo incluso si no está unlocked (no en el grafo actual)
         if (this.datos_materias[3671]) {
             const valorCorchete3671 = this.datos_materias[3671].valor_corchete;
             // Encontrar el máximo valor_corchete
@@ -160,7 +162,7 @@ class PlanDeEstudios {
                     // Verificar si 3671 es alcanzable desde esta materia (usando búsqueda exhaustiva)
                     const tiene3671Adelante = this.esAlcanzableDesde(id, 3671);
                     
-                    // Si NO tiene 3671 adelante, aumentar valor_corchete en 1
+                    // Si NO tiene 3671 adelante, aumentar valor_corchete en 1 (pero NO valor_corchete_original)
                     if (!tiene3671Adelante) {
                         this.datos_materias[id].valor_corchete += 1;
                     }
@@ -309,7 +311,12 @@ class PlanDeEstudios {
             }
             
             // Solo incluir si todas las prerrequisitos están completadas Y cumple la condición de cuatrimestre
-            if (todasPrerequisitosCompletadas && datos.cuatrimestre === datos.valor_corchete) {
+            // Usar valor_corchete_original para la condición de readiness, pero valor_corchete para sorting
+            const valorCorcheteParaReadiness = datos.valor_corchete_original !== undefined 
+                ? datos.valor_corchete_original 
+                : datos.valor_corchete;
+            
+            if (todasPrerequisitosCompletadas && datos.cuatrimestre === valorCorcheteParaReadiness) {
                 materiasEnCuatri.push([id, datos.valor_corchete, datos.cuatrimestre]);
             }
         }

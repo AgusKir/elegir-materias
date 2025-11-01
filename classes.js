@@ -112,16 +112,20 @@ class PlanDeEstudios {
             const caminoHasta3671 = this.encontrarCaminoMasLargoHasta(3671);
             const longitudHasta3671 = caminoHasta3671.length;
             
-            // Si 3671 está en el camino más largo general, usar ese
+            // Si 3671 está en el camino más largo general, ese camino ya incluye 3671
+            // pero necesitamos agregar 1 más porque 3671 toma 2 semestres en lugar de 1
             if (caminoMasLargoGeneral.includes(3671)) {
-                return longitudGeneral;
+                return longitudGeneral + 1;
             }
             
             // Si no, comparar con el camino hasta 3671
-            // IMPORTANTE: Si el semester es "Segundo" (2), 3671 no puede empezar hasta el siguiente año
+            // IMPORTANTE: 3671 ocupa 2 cuatrimestres, así que el camino efectivo debe considerar esto
+            // Si el camino hasta 3671 es de longitud N, entonces efectivamente toma N+1 cuatrimestres
+            // porque 3671 mismo ocupa 2 cuatrimestres (en lugar de 1)
+            let longitudEfectivaHasta3671 = longitudHasta3671 + 1;
+            
+            // Además, si el semester es "Segundo" (2), 3671 no puede empezar hasta el siguiente año
             // por lo que efectivamente toma 3 semestres desde ahora (siguiente Primero + siguiente Segundo + año siguiente Primero para terminar)
-            // Por lo tanto, si el semester es "Segundo", debemos considerar que 3671 efectivamente tiene longitud +2
-            let longitudEfectivaHasta3671 = longitudHasta3671;
             if (semester !== null && semester !== undefined && parseInt(semester) === 2) {
                 // En Segundo, 3671 solo puede empezar en el siguiente año, así que efectivamente toma 3 semestres
                 // desde ahora: siguiente Primero (inicio), siguiente Segundo (continúa), año siguiente Primero (termina)

@@ -156,16 +156,48 @@ class PlanDeEstudios {
                 });
             });
 
-        // Ajuste especial para 3671: como solo puede empezar en el primer cuatrimestre,
-        // si su valor_corchete calculado es par (segundo cuatrimestre), debe ajustarse a impar (primer cuatrimestre)
+        // Ajuste especial para 3671: asegurar que su valor_corchete no sea mayor que el camino más largo
+        // y que sea compatible con el cuatrimestre seleccionado (impar para Primero, par para Segundo)
+        // IMPORTANTE: 3671 ocupa 2 cuatrimestres, así que si el camino más largo es N, 3671 no puede tener
+        // valor_corchete N (porque eso lo haría terminar en N+1, que sería después del camino más largo)
+        // Por lo tanto, debe tener valor_corchete <= N-1, y además debe ser compatible con el semester
         if (this.datos_materias[3671]) {
             const valorCorchete3671 = this.datos_materias[3671].valor_corchete;
-            // Si el valor_corchete es par (corresponde a segundo cuatrimestre), ajustar a impar (primer cuatrimestre)
-            if (valorCorchete3671 % 2 === 0 && valorCorchete3671 > 0) {
-                this.datos_materias[3671].valor_corchete = valorCorchete3671 - 1;
-                // También actualizar valor_corchete_original para mantener consistencia
+            // Encontrar la longitud del camino más largo (no necesariamente el de 3671)
+            const caminoMasLargo = this.encontrarCaminoMasLargo();
+            const longitudCaminoMasLargo = caminoMasLargo.length;
+            
+            // El valor_corchete de 3671 no puede ser igual a la longitud del camino más largo
+            // porque 3671 toma 2 cuatrimestres, así que terminaría después del camino más largo
+            // Por lo tanto, debe ser como máximo longitudCaminoMasLargo - 1
+            let valorCorcheteAjustado = Math.min(valorCorchete3671, longitudCaminoMasLargo - 1);
+            
+            // Además, debe ser compatible con el cuatrimestre seleccionado:
+            // - Si semester es "Primero" (1): valor_corchete debe ser impar
+            // - Si semester es "Segundo" (2): valor_corchete debe ser par
+            if (semester !== null && semester !== undefined) {
+                const semesterNum = parseInt(semester);
+                if (semesterNum === 1) {
+                    // Primero: debe ser impar
+                    if (valorCorcheteAjustado % 2 === 0 && valorCorcheteAjustado > 0) {
+                        valorCorcheteAjustado = valorCorcheteAjustado - 1;
+                    }
+                } else if (semesterNum === 2) {
+                    // Segundo: debe ser par
+                    if (valorCorcheteAjustado % 2 === 1) {
+                        valorCorcheteAjustado = Math.max(0, valorCorcheteAjustado - 1);
+                    }
+                }
+            }
+            
+            // Asegurar que no sea negativo
+            valorCorcheteAjustado = Math.max(1, valorCorcheteAjustado);
+            
+            // Aplicar el ajuste
+            if (valorCorcheteAjustado !== valorCorchete3671) {
+                this.datos_materias[3671].valor_corchete = valorCorcheteAjustado;
                 if (this.datos_materias[3671].valor_corchete_original !== undefined) {
-                    this.datos_materias[3671].valor_corchete_original = this.datos_materias[3671].valor_corchete;
+                    this.datos_materias[3671].valor_corchete_original = valorCorcheteAjustado;
                 }
             }
         }

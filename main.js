@@ -430,7 +430,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return match ? parseInt(match[1]) : null;
             }
             // Mostrar resultados
-            resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:</h3>';
+            resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:<span class="help-icon" title="Placeholder">ⓘ</span></h3>';
             fijasFiltradas.forEach(materia => {
                 resultsDiv.innerHTML += `<p>${materia}</p>`;
             });

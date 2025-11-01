@@ -105,6 +105,36 @@ class PlanDeEstudios {
                     };
                 });
             });
+
+        // Si 3671 existe y tiene el máximo valor_corchete (o está empatado), aumentar +1 a materias no relacionadas
+        if (this.datos_materias[3671]) {
+            const valorCorchete3671 = this.datos_materias[3671].valor_corchete;
+            // Encontrar el máximo valor_corchete
+            let maxValorCorchete = -Infinity;
+            for (const id_materia in this.datos_materias) {
+                if (this.datos_materias[id_materia].valor_corchete > maxValorCorchete) {
+                    maxValorCorchete = this.datos_materias[id_materia].valor_corchete;
+                }
+            }
+            
+            // Si 3671 tiene el máximo (o está empatado)
+            if (valorCorchete3671 === maxValorCorchete) {
+                // Encontrar todas las materias que NO tienen a 3671 en su camino hacia adelante
+                for (const id_materia in this.datos_materias) {
+                    const id = parseInt(id_materia);
+                    if (id === 3671) continue; // No modificar 3671 a sí mismo
+                    
+                    // Verificar si 3671 está en el camino hacia adelante desde esta materia
+                    const caminoAdelante = this.encontrarCaminoMasLargoDesde(id);
+                    const tiene3671Adelante = caminoAdelante.includes(3671);
+                    
+                    // Si NO tiene 3671 adelante, aumentar valor_corchete en 1
+                    if (!tiene3671Adelante) {
+                        this.datos_materias[id].valor_corchete += 1;
+                    }
+                }
+            }
+        }
     }
 
     ajustarCuatrimestre3671YPropagar(respuesta) {

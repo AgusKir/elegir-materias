@@ -15,6 +15,32 @@ body {
     text-align: center;
 }
 
+.main-title {
+    font-size: 2em;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.subtitle {
+    font-size: 1.3em;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-weight: normal;
+}
+
+.subtitle-green {
+    color: #4CAF50;
+    text-align: center;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+body.dark-mode .subtitle-green {
+    color: #66BB6A;
+}
+
 body.dark-mode {
     background: #181a1b;
     color: #f1f1f1;
@@ -453,8 +479,8 @@ body.dark-mode .status-button.status-final-ignorar, body.light-mode .status-butt
 /* Grid de 3x2 para los selectores rápidos */
 .quick-select-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(240px, 1fr));
-    gap: 8px 24px;
+    grid-template-columns: repeat(3, minmax(200px, 1fr));
+    gap: 8px 16px;
     margin: 0 0 18px 0;
     padding-left: 12px; /* más padding para alinear visualmente con la tabla */
 }
@@ -462,12 +488,12 @@ body.dark-mode .status-button.status-final-ignorar, body.light-mode .status-butt
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    /* permitir que el label se parta si hace falta en pantallas chicas */
 }
 .quick-select-grid .quick-item label {
     display: flex;
     align-items: center;
     padding: 4px 8px;
+    white-space: nowrap; /* evitar que el texto se parta en dos líneas */
 }
 
 /* Notificación superior */
@@ -525,4 +551,62 @@ body.light-mode .top-notification {
 .combo-note {
     margin-left: 10px;
     font-weight: 600;
+}
+
+/* Icono de ayuda con tooltip */
+.help-icon {
+    display: inline-block;
+    margin-left: 8px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #4CAF50;
+    color: white;
+    text-align: center;
+    font-size: 13px;
+    line-height: 18px;
+    cursor: help;
+    position: relative;
+    vertical-align: middle;
+}
+
+body.dark-mode .help-icon {
+    background: #66BB6A;
+}
+
+.help-icon:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 10px;
+    background: #333;
+    color: white;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-size: 0.9em;
+    margin-bottom: 5px;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+body.light-mode .help-icon:hover::after {
+    background: #222;
+}
+
+.help-icon:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 92%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #333;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+body.light-mode .help-icon:hover::before {
+    border-top-color: #222;
 }

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head><title>Debug Case 4</title></head>
+<body>
+    <h1>Debug Case 4</h1>
+    <pre id="output"></pre>
+    <script src="classes.js?v=11"></script>
+    <script>
+        let output = '';
+        
+        const allSubjects = [];
+        for (let i = 3621; i <= 3680; i++) allSubjects.push(i);
+        allSubjects.push(901, 902, 903, 904, 911, 912);
+        
+        // Case 4: All but 3667, 3671
+        const excluded4 = new Set([3667, 3671]);
+        const completed4 = allSubjects.filter(id => !excluded4.has(id));
+        
+        const plan = new PlanDeEstudios();
+        plan.cargarMateriasDesdeTexto(listado, completed4);
+        plan.cargarNombresDesdeTexto(tabla_nombres);
+        plan.calcularYGuardarLongitudes(2);
+        
+        output += '=== Case 4: All but 3667, 3671, semester Segundo ===\n\n';
+        output += `cuatrisMinimosBase: ${plan.cuatrisMinimosHastaRecibirse(2)}\n\n`;
+        
+        output += 'Subjects in graph:\n';
+        for (const id in plan.materias) {
+            output += `  ${id} (${plan.materias[id].nombre || 'no name'})\n`;
+        }
+        output += '\n';
+        
+        output += '3667:\n';
+        if (plan.datos_materias[3667]) {
+            const data = plan.datos_materias[3667];
+            output += `  valor_corchete: ${data.valor_corchete} (expected 2)\n`;
+            output += `  cuatrimestre: ${data.cuatrimestre}\n`;
+        }
+        
+        output += '\n3671:\n';
+        if (plan.datos_materias[3671]) {
+            const data = plan.datos_materias[3671];
+            output += `  valor_corchete: ${data.valor_corchete}\n`;
+            output += `  cuatrimestre: ${data.cuatrimestre}\n`;
+        }
+        
+        output += '\nLongest path:\n';
+        const longest = plan.encontrarCaminoMasLargo();
+        output += `  ${longest.join(' -> ')}\n`;
+        
+        output += '\nExpected: 904 should be 4\n';
+        output += 'But 904 is already completed, so it shouldn\'t appear!\n';
+        output += 'So the expected result seems wrong for this case.\n';
+        
+        document.getElementById('output').textContent = output;
+    </script>
+</body>
+</html>

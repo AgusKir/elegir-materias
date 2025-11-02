@@ -163,37 +163,39 @@ class PlanDeEstudios {
             
             // Additional adjustment for 3671's semester parity constraint
             // 3671 can only start in Primero (odd semesters: 1, 3, 5, ...)
-            if (semester === 1) {
-                // Find the path to 3671 (prerequisites)
-                const caminoHasta3671 = this.encontrarCaminoMasLargoHasta(3671);
-                // The path includes 3671 at the start (since encontrarCaminoMasLargoHasta returns reversed path)
-                // Remove 3671 from the path to count only prerequisites
-                const prerequisitosPath = caminoHasta3671.filter(id => id !== 3671);
+            // Find the path to 3671 (prerequisites)
+            const caminoHasta3671 = this.encontrarCaminoMasLargoHasta(3671);
+            // The path includes 3671 at the start (since encontrarCaminoMasLargoHasta returns reversed path)
+            // Remove 3671 from the path to count only prerequisites
+            const prerequisitosPath = caminoHasta3671.filter(id => id !== 3671);
+            
+            // Only apply parity adjustment if we have prerequisites
+            if (prerequisitosPath.length > 0) {
+                const semestresPrerequisitos = this.contarSemestresEnCamino(prerequisitosPath, false);
                 
-                // Only apply parity adjustment if we have prerequisites
-                if (prerequisitosPath.length > 0) {
-                    const semestresPrerequisitos = this.contarSemestresEnCamino(prerequisitosPath, false);
-                    
-                    // Check if prerequisites end in an odd semester (Primero)
-                    // If semestresPrerequisitos is odd (1, 3, 5...), they end in Primero (semester 1, 3, 5...)
-                    // If semestresPrerequisitos is even (2, 4, 6...), they end in Segundo (semester 2, 4, 6...)
-                    const prerequisitosEndInPrimero = (semestresPrerequisitos % 2 === 1);
-                    
-                    if (prerequisitosEndInPrimero) {
-                        // Prerequisites end in Primero (odd semester like 1, 3, 5...)
-                        // 3671 must start in the NEXT Primero, so we need to add 1 semester gap
-                        // Example: If prereqs end in semester 1, 3671 starts in semester 3
-                        // Total: prereqs (1) + gap (1) + 3671 duration (2) = 4 semesters
-                        const totalWith3671 = semestresPrerequisitos + 1 + 2;
-                        semestres = Math.max(semestres, totalWith3671);
-                    } else {
-                        // Prerequisites end in Segundo (even semester like 2, 4, 6...)
-                        // The next semester is already Primero, so 3671 can start immediately
-                        // Example: If prereqs end in semester 2, 3671 starts in semester 3
-                        // Total: prereqs (2) + 3671 duration (2) = 4 semesters
-                        const totalWith3671 = semestresPrerequisitos + 2;
-                        semestres = Math.max(semestres, totalWith3671);
-                    }
+                // The absolute semester when prerequisites complete depends on starting semester
+                // If we start in semester 1 and prereqs take 1 semester, we're at absolute semester 1
+                // If we start in semester 2 and prereqs take 1 semester, we're at absolute semester 2
+                const absoluteSemesterAfterPrereqs = semester + semestresPrerequisitos - 1;
+                
+                // 3671 can only start in odd semesters (Primero: 1, 3, 5, ...)
+                // Check if prerequisites end in an odd semester (Primero)
+                const prerequisitosEndInPrimero = (absoluteSemesterAfterPrereqs % 2 === 1);
+                
+                if (prerequisitosEndInPrimero) {
+                    // Prerequisites end in Primero (odd semester like 1, 3, 5...)
+                    // 3671 must start in the NEXT Primero, so we need to add 1 semester gap
+                    // Example: If prereqs end in semester 1, 3671 starts in semester 3
+                    // Total: prereqs + gap (1) + 3671 duration (2)
+                    const totalWith3671 = semestresPrerequisitos + 1 + 2;
+                    semestres = Math.max(semestres, totalWith3671);
+                } else {
+                    // Prerequisites end in Segundo (even semester like 2, 4, 6...)
+                    // The next semester is already Primero, so 3671 can start immediately
+                    // Example: If prereqs end in semester 2, 3671 starts in semester 3
+                    // Total: prereqs + 3671 duration (2)
+                    const totalWith3671 = semestresPrerequisitos + 2;
+                    semestres = Math.max(semestres, totalWith3671);
                 }
             }
         }
@@ -233,9 +235,37 @@ class PlanDeEstudios {
                     }
                     
                     // Determine effective cuatrisMinimos for this subject
-                    // When semester is not specified, use the old adjustment logic
                     let cuatrisMinimos = cuatrisMinimosBase;
-                    if (semester === null && this.materias[3671]) {
+                    if (semester !== null && this.materias[3671]) {
+                        // Check if this subject leads to 3671
+                        const leadsto3671 = this.esAlcanzableDesde(id_materia, 3671);
+                        
+                        if (leadsto3671) {
+                            // Calculate the actual path length through this subject to 3671
+                            const caminoDesde = this.encontrarCaminoMasSemestresDesde(id_materia);
+                            if (caminoDesde.includes(3671) && caminoDesde.length > 1) {
+                                const index3671 = caminoDesde.indexOf(3671);
+                                if (index3671 > 0) {
+                                    const pathBefore3671 = caminoDesde.slice(0, index3671);
+                                    const semestersBefore3671 = this.contarSemestresEnCamino(pathBefore3671, true);
+                                    const absoluteSemesterBefore3671 = semester + semestersBefore3671 - 1;
+                                    const before3671IsPrimero = (absoluteSemesterBefore3671 % 2 === 1);
+                                    
+                                    // Calculate how long this path actually takes
+                                    const caminoHasta = this.encontrarCaminoMasSemestresHasta(id_materia);
+                                    const totalPathSemesters = this.contarSemestresEnCamino(caminoHasta, true) - 1 + 
+                                                              this.contarSemestresEnCamino(caminoDesde, true);
+                                    const actualPathWithGap = totalPathSemesters + (before3671IsPrimero ? 1 : 0);
+                                    
+                                    // If this path is shorter than cuatrisMinimosBase, adjust down
+                                    if (actualPathWithGap < cuatrisMinimosBase) {
+                                        cuatrisMinimos = actualPathWithGap;
+                                    }
+                                }
+                            }
+                        }
+                    } else if (semester === null && this.materias[3671]) {
+                        // When semester is not specified, use the old adjustment logic
                         const tiene3671Adelante = this.esAlcanzableDesde(id_materia, 3671);
                         if (!tiene3671Adelante) {
                             cuatrisMinimos = cuatrisMinimosBase + 1;

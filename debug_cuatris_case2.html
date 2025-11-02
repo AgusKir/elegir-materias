@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head><title>Debug cuatrisMinimos Case 2</title></head>
+<body>
+    <h1>Debug cuatrisMinimos for Case 2</h1>
+    <pre id="output"></pre>
+    <script src="classes.js?v=9"></script>
+    <script>
+        let output = '';
+        
+        const allSubjects = [];
+        for (let i = 3621; i <= 3680; i++) allSubjects.push(i);
+        allSubjects.push(901, 902, 903, 904, 911, 912);
+        
+        const excluded = new Set([901, 902, 903, 904, 3667, 3671]);
+        const completed = allSubjects.filter(id => !excluded.has(id));
+        
+        const plan = new PlanDeEstudios();
+        plan.cargarMateriasDesdeTexto(listado, completed);
+        plan.cargarNombresDesdeTexto(tabla_nombres);
+        
+        output += '=== Case 2: semester 2 (Segundo) ===\n\n';
+        
+        const caminoMasLargoGeneral = plan.encontrarCaminoMasLargo();
+        output += `Longest path: ${caminoMasLargoGeneral.join(' -> ')}\n`;
+        output += `Length: ${caminoMasLargoGeneral.length}\n`;
+        output += `Semesters (with 3671 adj): ${plan.contarSemestresEnCamino(caminoMasLargoGeneral, true)}\n\n`;
+        
+        // Check if there's 3671 in the longest path
+        output += `Contains 3671: ${caminoMasLargoGeneral.includes(3671)}\n\n`;
+        
+        // Check the 3671 path specifically
+        const caminoHasta3671 = plan.encontrarCaminoMasLargoHasta(3671);
+        output += `Path to 3671: ${caminoHasta3671.join(' -> ')}\n`;
+        const prerequisitosPath = caminoHasta3671.filter(id => id !== 3671);
+        output += `Prerequisites: ${prerequisitosPath.join(' -> ')}\n`;
+        
+        if (prerequisitosPath.length > 0) {
+            const semestresPrerequisitos = plan.contarSemestresEnCamino(prerequisitosPath, false);
+            output += `Semesters in prereqs: ${semestresPrerequisitos}\n`;
+            
+            const absoluteSemesterAfterPrereqs = 2 + semestresPrerequisitos - 1;
+            output += `Absolute semester after prereqs: ${absoluteSemesterAfterPrereqs}\n`;
+            output += `Is Primero: ${absoluteSemesterAfterPrereqs % 2 === 1}\n\n`;
+            
+            if (absoluteSemesterAfterPrereqs % 2 === 1) {
+                const total = semestresPrerequisitos + 1 + 2;
+                output += `Total with gap: ${semestresPrerequisitos} + 1 + 2 = ${total}\n`;
+                output += `Math.max(${plan.contarSemestresEnCamino(caminoMasLargoGeneral, true)}, ${total}) = ${Math.max(plan.contarSemestresEnCamino(caminoMasLargoGeneral, true), total)}\n`;
+            } else {
+                const total = semestresPrerequisitos + 2;
+                output += `Total no gap: ${semestresPrerequisitos} + 2 = ${total}\n`;
+                output += `Math.max(${plan.contarSemestresEnCamino(caminoMasLargoGeneral, true)}, ${total}) = ${Math.max(plan.contarSemestresEnCamino(caminoMasLargoGeneral, true), total)}\n`;
+            }
+        }
+        
+        output += `\nActual cuatrisMinimos: ${plan.cuatrisMinimosHastaRecibirse(2)}\n`;
+        output += `Expected: 3 (because 3667->3671 path takes 3 semesters in semester 2, which should be < 901-904 path of 4)\n`;
+        output += `But 901-904 always takes 4 semesters regardless of starting semester!\n`;
+        
+        document.getElementById('output').textContent = output;
+    </script>
+</body>
+</html>

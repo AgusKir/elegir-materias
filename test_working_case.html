@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head><title>Test Working Case</title></head>
+<body>
+    <h1>Test Working Case (from issue)</h1>
+    <pre id="output"></pre>
+    <script src="classes.js?v=12"></script>
+    <script>
+        let output = '';
+        
+        // From issue: 3621 through 3640, 3642, 3643, 3645, 3649, 3651, 901, 902, 911, 912
+        const completed = [];
+        for (let i = 3621; i <= 3640; i++) completed.push(i);
+        completed.push(3642, 3643, 3645, 3649, 3651, 901, 902, 911, 912);
+        
+        const plan = new PlanDeEstudios();
+        plan.cargarMateriasDesdeTexto(listado, completed);
+        plan.cargarNombresDesdeTexto(tabla_nombres);
+        plan.calcularYGuardarLongitudes(2); // Segundo
+        
+        output += '=== Working Case from Issue (Segundo) ===\n\n';
+        output += 'Expected:\n';
+        output += '3644 - 1\n3650 - 1\n3647 - 2\n3648 - 2\n3654 - 2\n';
+        output += '3641 - 3\n3646 - 3\n3656 - 3\n903 - 4\n';
+        output += '3662 - 5\n3675 - 5\n3676 - 5\n\n';
+        
+        output += 'Actual:\n';
+        const subjects = [3644, 3650, 3647, 3648, 3654, 3641, 3646, 3656, 903, 3662, 3675, 3676];
+        for (const id of subjects) {
+            if (plan.datos_materias[id]) {
+                output += `${id} - ${plan.datos_materias[id].valor_corchete}\n`;
+            }
+        }
+        
+        document.getElementById('output').textContent = output;
+    </script>
+</body>
+</html>

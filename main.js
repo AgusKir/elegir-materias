@@ -41,6 +41,81 @@ document.addEventListener('DOMContentLoaded', function() {
         updateToggleIcon();
     });
 
+    // Option buttons functionality
+    function initializeOptionButtons() {
+        // Number of subjects
+        const numSubjectsButtons = document.querySelectorAll('#num-subjects-options .option-btn');
+        const numSubjectsInput = document.getElementById('num-subjects');
+        const numSubjectsNote = document.getElementById('num-subjects-note');
+        
+        numSubjectsButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                numSubjectsButtons.forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                numSubjectsInput.value = this.getAttribute('data-value');
+                const v = parseInt(this.getAttribute('data-value'), 10);
+                numSubjectsNote.textContent = v >= 7 ? '😱 ¡Mucha suerte!' : '';
+            });
+        });
+        
+        // Set initial selection
+        const savedNumSubjects = localStorage.getItem('numSubjects') || '1';
+        numSubjectsInput.value = savedNumSubjects;
+        numSubjectsButtons.forEach(btn => {
+            if (btn.getAttribute('data-value') === savedNumSubjects) {
+                btn.classList.add('selected');
+            }
+        });
+        const v = parseInt(savedNumSubjects, 10);
+        numSubjectsNote.textContent = v >= 7 ? '😱 ¡Mucha suerte!' : '';
+        
+        // Semester
+        const semesterButtons = document.querySelectorAll('#semester-options .option-btn');
+        const semesterInput = document.getElementById('semester');
+        
+        semesterButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                semesterButtons.forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                semesterInput.value = this.getAttribute('data-value');
+                localStorage.setItem('semester', this.getAttribute('data-value'));
+            });
+        });
+        
+        // Set initial selection
+        const savedSemester = localStorage.getItem('semester') || '1';
+        semesterInput.value = savedSemester;
+        semesterButtons.forEach(btn => {
+            if (btn.getAttribute('data-value') === savedSemester) {
+                btn.classList.add('selected');
+            }
+        });
+        
+        // Intermediate priority
+        const intermediateButtons = document.querySelectorAll('#intermediate-options .option-btn');
+        const intermediateInput = document.getElementById('intermediate-priority');
+        
+        intermediateButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                intermediateButtons.forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                intermediateInput.value = this.getAttribute('data-value');
+                localStorage.setItem('intermediatePriority', this.getAttribute('data-value'));
+            });
+        });
+        
+        // Set initial selection
+        const savedIntermediate = localStorage.getItem('intermediatePriority') || 'no';
+        intermediateInput.value = savedIntermediate;
+        intermediateButtons.forEach(btn => {
+            if (btn.getAttribute('data-value') === savedIntermediate) {
+                btn.classList.add('selected');
+            }
+        });
+    }
+    
+    initializeOptionButtons();
+
     // Save checkboxes on change
     subjectChecklist.addEventListener('change', function(e) {
         if (e.target.type === 'checkbox') {
@@ -348,15 +423,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Inicializar al cargar
     actualizarContadoresMaterias();
 
-    // Nota al lado del combo cuando es >= 7
-    const numSubjectsNote = document.getElementById('num-subjects-note');
-    function updateNumSubjectsNote() {
-        const v = parseInt(subjectCountDropdown.value, 10);
-        numSubjectsNote.textContent = v >= 7 ? '😱 ¡Mucha suerte!' : '';
-    }
-    subjectCountDropdown.addEventListener('change', updateNumSubjectsNote);
-    updateNumSubjectsNote();
-
     // Filtrar el string listado para eliminar materias ignoradas
     function filtrarListadoPorIds(listado, idsIgnorar) {
         const idsSet = new Set(idsIgnorar);
@@ -408,6 +474,38 @@ document.addEventListener('DOMContentLoaded', function() {
             if (planFiltrado.datos_materias[3671] && semester === 1) {
                 planFiltrado.ajustarCuatrimestre3671YPropagar(semester);
             }
+            
+            // Aplicar ajuste de prioridad intermedia si está activado
+            const intermediatePriority = document.getElementById('intermediate-priority').value;
+            if (intermediatePriority === 'yes') {
+                // IDs de materias intermedias: 3621-3655, 3675, 3676, 901, 902
+                const intermedioIds = new Set();
+                for (let i = 3621; i <= 3655; i++) {
+                    intermedioIds.add(i);
+                }
+                intermedioIds.add(3675);
+                intermedioIds.add(3676);
+                intermedioIds.add(901);
+                intermedioIds.add(902);
+                
+                // Encontrar el máximo valor_corchete entre las materias intermedias
+                let maxIntermedioValor = 0;
+                for (const [id, datos] of Object.entries(planFiltrado.datos_materias)) {
+                    const idNum = parseInt(id);
+                    if (intermedioIds.has(idNum) && planFiltrado.materias[idNum]) {
+                        maxIntermedioValor = Math.max(maxIntermedioValor, datos.valor_corchete);
+                    }
+                }
+                
+                // Ajustar valor_corchete de materias NO intermedias
+                for (const [id, datos] of Object.entries(planFiltrado.datos_materias)) {
+                    const idNum = parseInt(id);
+                    if (!intermedioIds.has(idNum) && planFiltrado.materias[idNum]) {
+                        datos.valor_corchete = datos.valor_corchete + maxIntermedioValor;
+                    }
+                }
+            }
+            
             // Obtener resultados
             // Búsqueda robusta: incrementa el pedido hasta que la cantidad de sugeridas (no ignoradas) sea la correcta
             let pedido = subjectCount;
@@ -437,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 pedido++;
             }
             // Mostrar resultados
-            resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:<span class="help-icon" title="Fijándose en tus materias actuales, el sistema calcula el camino de correlativas más largo hasta recibirte, y en base a eso te ordena las materias según las correlativas que tienen después. El número en corchetes básicamente significa cuántos cuatris tenés para aprobarla (sin contar verano) sin atrasarte en tu tiempo mínimo de graduación.">ⓘ</span></h3>';
+            resultsDiv.innerHTML = '<h3>Materias para el próximo cuatrimestre:<span class="help-icon" data-tooltip="Fijándose en tus materias actuales, el sistema calcula el camino de correlativas más largo hasta recibirte, y en base a eso te ordena las materias según las correlativas que tienen después. El número en corchetes básicamente significa cuántos cuatris tenés para aprobarla (sin contar verano) sin atrasarte en tu tiempo mínimo de graduación.">ⓘ</span></h3>';
             fijasFiltradas.forEach(materia => {
                 resultsDiv.innerHTML += `<p>${materia}</p>`;
             });

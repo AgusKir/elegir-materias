@@ -99,29 +99,39 @@
             <div style="margin-bottom: 12px; text-align: right; font-weight: bold;">
                 <span id="contador-general" class="contador-materias"></span>
             </div>
-            <div class="form-row">
-                <label for="num-subjects">¿A cuántas materias te querés anotar?</label>
-                <select id="num-subjects" name="num-subjects">
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option value="8">8</option>
-                    <option value="9">9</option>
-                    <option value="10">10</option>
-                </select>
+            <div class="form-row-vertical">
+                <label>¿A cuántas materias te querés anotar?</label>
+                <div class="option-buttons" id="num-subjects-options">
+                    <button type="button" class="option-btn" data-value="1">1</button>
+                    <button type="button" class="option-btn" data-value="2">2</button>
+                    <button type="button" class="option-btn" data-value="3">3</button>
+                    <button type="button" class="option-btn" data-value="4">4</button>
+                    <button type="button" class="option-btn" data-value="5">5</button>
+                    <button type="button" class="option-btn" data-value="6">6</button>
+                    <button type="button" class="option-btn" data-value="7">7</button>
+                    <button type="button" class="option-btn" data-value="8">8</button>
+                    <button type="button" class="option-btn" data-value="9">9</button>
+                    <button type="button" class="option-btn" data-value="10">10</button>
+                </div>
                 <span id="num-subjects-note" class="combo-note"></span>
+                <input type="hidden" id="num-subjects" name="num-subjects" value="1">
             </div>
-            <div class="form-row">
-                <label for="semester">¿Para qué cuatrimestre te vas a anotar?</label>
-                <select id="semester" name="semester">
-                    <option value="1">Primero</option>
-                    <option value="2">Segundo</option>
-                    <option value="2">Verano</option>
-                </select>
+            <div class="form-row-vertical">
+                <label>¿Para qué cuatrimestre te vas a anotar?</label>
+                <div class="option-buttons" id="semester-options">
+                    <button type="button" class="option-btn" data-value="1">Primero</button>
+                    <button type="button" class="option-btn" data-value="2">Segundo</button>
+                    <button type="button" class="option-btn" data-value="3">Verano</button>
+                </div>
+                <input type="hidden" id="semester" name="semester" value="1">
+            </div>
+            <div class="form-row-vertical">
+                <label>¿Querés priorizar el título intermedio?<span class="help-icon" data-tooltip="Activar esto va a hacer que el sistema te recomiende cursar RSU (materia de segundo sin correlativas posteriores) antes que cualquier materia de cuarto o quinto. No es lo más óptimo para el tiempo de recibirse pero sí para el del intermedio.">ⓘ</span></label>
+                <div class="option-buttons" id="intermediate-options">
+                    <button type="button" class="option-btn" data-value="no">No</button>
+                    <button type="button" class="option-btn" data-value="yes">Sí</button>
+                </div>
+                <input type="hidden" id="intermediate-priority" name="intermediate-priority" value="no">
             </div>
             <div class="button-row">
                 <button type="button" id="calculate-button">Calcular</button>

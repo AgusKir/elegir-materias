@@ -72,6 +72,45 @@ class PlanDeEstudios {
         return count;
     }
 
+    // Find the path with the most semesters (accounting for 3671 taking 2 semesters)
+    encontrarCaminoMasSemestresDesde(id_materia) {
+        if (!this.materias[id_materia]) return [];
+        if (this.materias[id_materia].posteriores.size === 0) return [id_materia];
+        
+        let semestresMaximos = 0;
+        let caminoMaximo = [];
+        
+        this.materias[id_materia].posteriores.forEach(posterior => {
+            const camino = this.encontrarCaminoMasSemestresDesde(posterior);
+            const semestresCamino = this.contarSemestresEnCamino(camino, true);
+            if (semestresCamino > semestresMaximos) {
+                semestresMaximos = semestresCamino;
+                caminoMaximo = camino;
+            }
+        });
+    
+        return [id_materia, ...caminoMaximo];
+    }
+
+    encontrarCaminoMasSemestresHasta(id_materia) {
+        if (!this.materias[id_materia]) return [];
+        if (this.materias[id_materia].anteriores.size === 0) return [id_materia];
+        
+        let semestresMaximos = 0;
+        let caminoMaximo = [];
+        
+        for (const anterior of this.materias[id_materia].anteriores) {
+            const camino = this.encontrarCaminoMasSemestresHasta(anterior);
+            const semestresCamino = this.contarSemestresEnCamino(camino, true);
+            if (semestresCamino > semestresMaximos) {
+                semestresMaximos = semestresCamino;
+                caminoMaximo = camino;
+            }
+        }
+        
+        return [id_materia, ...caminoMaximo];
+    }
+
     encontrarCaminoMasLargo() {
         let caminoMaximo = [];
         for (const id_materia in this.materias) {
@@ -182,9 +221,9 @@ class PlanDeEstudios {
                     let cantMateriasAntes, cantMateriasDespues;
                     
                     if (semester !== null) {
-                        // When semester is specified, count semesters accounting for 3671 taking 2 semesters
-                        const caminoHasta = this.encontrarCaminoMasLargoHasta(id_materia);
-                        const caminoDesde = this.encontrarCaminoMasLargoDesde(id_materia);
+                        // When semester is specified, use semester-aware path finding that accounts for 3671 taking 2 semesters
+                        const caminoHasta = this.encontrarCaminoMasSemestresHasta(id_materia);
+                        const caminoDesde = this.encontrarCaminoMasSemestresDesde(id_materia);
                         cantMateriasAntes = this.contarSemestresEnCamino(caminoHasta, true) - 1;
                         cantMateriasDespues = this.contarSemestresEnCamino(caminoDesde, true) - 1;
                     } else {
@@ -204,7 +243,8 @@ class PlanDeEstudios {
                     }
                     
                     const valorCorchete = cuatrisMinimos - (cantMateriasAntes + cantMateriasDespues);
-                    const cuatrimestre = cuatrisMinimos - parseInt(longitud) + 1;
+                    // Calculate cuatrimestre based on semester count when semester is specified, otherwise use path length
+                    const cuatrimestre = cuatrisMinimos - (cantMateriasDespues + 1) + 1;
 
                     this.datos_materias[id_materia] = {
                         cuatrimestre: cuatrimestre,

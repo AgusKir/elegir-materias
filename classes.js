@@ -257,8 +257,9 @@ class PlanDeEstudios {
                                                               this.contarSemestresEnCamino(caminoDesde, true);
                                     const actualPathWithGap = totalPathSemesters + (before3671IsPrimero ? 1 : 0);
                                     
-                                    // If this path is shorter than cuatrisMinimosBase, adjust down
-                                    if (actualPathWithGap < cuatrisMinimosBase) {
+                                    // ONLY adjust down if this path is shorter by exactly 1 semester
+                                    // This handles the case where the 3671 path saves 1 semester due to no gap
+                                    if (actualPathWithGap === cuatrisMinimosBase - 1) {
                                         cuatrisMinimos = actualPathWithGap;
                                     }
                                 }

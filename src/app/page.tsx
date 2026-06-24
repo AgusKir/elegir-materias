@@ -658,7 +658,7 @@ export default function Page() {
           title={colorMode === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
         >
           <img
-            src={colorMode === "dark" ? "/assets/dark-mode-toggle-icon.svg" : "/assets/light-mode-toggle-icon.svg"}
+            src={colorMode === "dark" ? "./assets/dark-mode-toggle-icon.svg" : "./assets/light-mode-toggle-icon.svg"}
             alt="Toggle color theme"
           />
         </button>
@@ -1138,14 +1138,14 @@ export default function Page() {
             rel="noopener noreferrer"
             className="footer-link-btn"
           >
-            <img src="/assets/github-logo.svg" alt="GitHub" />
+            <img src="./assets/github-logo.svg" alt="GitHub" />
             GitHub
           </a>
           <a
             href="mailto:agustin.kiryczun@gmail.com"
             className="footer-link-btn"
           >
-            <img src="/assets/email-logo.svg" alt="Email" />
+            <img src="./assets/email-logo.svg" alt="Email" />
             Enviame un email
           </a>
         </div>

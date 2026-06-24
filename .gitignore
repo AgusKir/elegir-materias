@@ -1,3 +1,22 @@
+# Next.js & Node
+node_modules
+.next/
+out/
+build/
+.env*.local
+*.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Original Project Ignored Files
 *.code-workspace
 analyze_expected.html
 check_paths.html

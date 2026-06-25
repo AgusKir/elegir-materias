@@ -119,6 +119,15 @@
   padding: 0;
 }
 
+html {
+  background-color: var(--bg-app);
+}
+
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   font-family: var(--font-sans);
   background: var(--bg-app);
@@ -257,6 +266,21 @@ body {
 @media (max-width: 900px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 901px) {
+  .quick-select-card {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .checklist-section {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+  .settings-panel {
+    grid-column: 2;
+    grid-row: 2;
   }
 }
 
@@ -760,6 +784,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .result-list {
@@ -827,6 +853,9 @@ body {
 .result-text {
   color: var(--text-primary);
   font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
 }
 
 /* Empty/No results state */

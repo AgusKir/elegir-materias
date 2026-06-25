@@ -718,8 +718,53 @@ export default function Page() {
       {/* Main Grid */}
       <main className="dashboard-grid">
 
+        {/* Quick Selection Card */}
+        <div className="glass-card quick-select-card">
+          <div className="quick-select-title" style={{ marginBottom: "14px" }}>
+            Aprobar todas las materias de:
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+            {SUBJECT_GROUPS.map(group => {
+              const isAllChecked = isGroupAllApproved(group.key);
+              const shortName = group.name === "Primer Año" ? "Todo 1°" :
+                group.name === "Segundo Año" ? "Todo 2°" :
+                  group.name === "Tercer Año" ? "Todo 3°" :
+                    group.name === "Cuarto Año" ? "Todo 4°" :
+                      group.name === "Quinto Año" ? "Todo 5°" : "Transversales";
+              return (
+                <label
+                  key={`quick-right-${group.key}`}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    margin: 0,
+                    cursor: "pointer",
+                    fontSize: "0.85rem",
+                    background: isAllChecked ? "rgba(37, 99, 235, 0.12)" : "rgba(255, 255, 255, 0.02)",
+                    border: isAllChecked ? "1px solid var(--btn-primary-bg)" : "1px solid var(--border-color)",
+                    padding: "8px 12px",
+                    borderRadius: "var(--radius-sm)",
+                    color: isAllChecked ? "var(--text-primary)" : "var(--text-secondary)",
+                    userSelect: "none",
+                    transition: "var(--transition-smooth)"
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isAllChecked}
+                    onChange={(e) => handleQuickSelectChange(group.key, e.target.checked)}
+                    style={{ cursor: "pointer" }}
+                  />
+                  {shortName}
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Left Column: Subjects checklist */}
-        <section className="glass-card">
+        <section className="glass-card checklist-section">
           <div className="subject-checklist-container">
             {filteredGroups.map(group => {
               const count = getGroupCompletedCount(group.key);
@@ -855,51 +900,6 @@ export default function Page() {
 
         {/* Right Column: Settings & Calculator controls */}
         <section className="settings-panel">
-
-          {/* Right Column Quick Selection Card */}
-          <div className="glass-card">
-            <div className="quick-select-title" style={{ marginBottom: "14px" }}>
-              Aprobar todas las materias de:
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-              {SUBJECT_GROUPS.map(group => {
-                const isAllChecked = isGroupAllApproved(group.key);
-                const shortName = group.name === "Primer Año" ? "Todo 1°" :
-                  group.name === "Segundo Año" ? "Todo 2°" :
-                    group.name === "Tercer Año" ? "Todo 3°" :
-                      group.name === "Cuarto Año" ? "Todo 4°" :
-                        group.name === "Quinto Año" ? "Todo 5°" : "Transversales";
-                return (
-                  <label
-                    key={`quick-right-${group.key}`}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      margin: 0,
-                      cursor: "pointer",
-                      fontSize: "0.85rem",
-                      background: isAllChecked ? "rgba(37, 99, 235, 0.12)" : "rgba(255, 255, 255, 0.02)",
-                      border: isAllChecked ? "1px solid var(--btn-primary-bg)" : "1px solid var(--border-color)",
-                      padding: "8px 12px",
-                      borderRadius: "var(--radius-sm)",
-                      color: isAllChecked ? "var(--text-primary)" : "var(--text-secondary)",
-                      userSelect: "none",
-                      transition: "var(--transition-smooth)"
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isAllChecked}
-                      onChange={(e) => handleQuickSelectChange(group.key, e.target.checked)}
-                      style={{ cursor: "pointer" }}
-                    />
-                    {shortName}
-                  </label>
-                );
-              })}
-            </div>
-          </div>
 
           {/* Configuration Card */}
           <div className="glass-card">

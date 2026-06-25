@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   description: "Descubrí qué materias te conviene cursar para recibirte en el menor tiempo posible.",
   authors: [{ name: "Agustín Kiryczun" }],
   keywords: ["materias", "correlativas", "universidad", "cuatrimestre", "inscripcion", "plan de estudios"],
+  icons: {
+    icon: "/assets/page-icon.webp",
+  },
 };
 
 export const viewport: Viewport = {

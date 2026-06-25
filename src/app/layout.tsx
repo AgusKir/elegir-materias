@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
+import pageIcon from "../../public/assets/page-icon.webp";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Agustín Kiryczun" }],
   keywords: ["materias", "correlativas", "universidad", "cuatrimestre", "inscripcion", "plan de estudios"],
   icons: {
-    icon: "/assets/page-icon.webp",
+    icon: pageIcon.src,
   },
 };
 

@@ -8,8 +8,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Elegir Materias - Calculadora de inscripción",
-  description: "Una aplicación web diseñada para ayudar a estudiantes universitarios a gestionar e inscribirse a materias de forma óptima, basado en correlativas y cuatrimestres restantes.",
+  title: "Elegir Materias - Optimizá tu carrera",
+  description: "Descubrí qué materias te conviene cursar para recibirte en el menor tiempo posible.",
   authors: [{ name: "Agustín Kiryczun" }],
   keywords: ["materias", "correlativas", "universidad", "cuatrimestre", "inscripcion", "plan de estudios"],
 };
@@ -26,9 +26,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={`${outfit.variable}`}>
-      <head>
-        <link rel="icon" type="image/webp" href="/assets/page-icon.webp" />
-      </head>
       <body>
         {children}
       </body>

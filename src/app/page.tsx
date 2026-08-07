@@ -1,8 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { SubjectStatus, SubjectData, CalculationResult } from "../types";
-import { PlanDeEstudios, LISTADO_MATERIAS, TABLA_NOMBRES } from "../utils/planDeEstudios";
+import { SubjectStatus, SubjectData, CalculationResult, ActiveTab, ParsedResultItem } from "../types";
+import {
+  PlanDeEstudios,
+  LISTADO_MATERIAS,
+  TABLA_NOMBRES,
+  PREVIOUS_SUBJECTS_3671,
+  getPrerequisitesMap
+} from "../utils/planDeEstudios";
+import SubjectGraphMap from "../components/SubjectGraphMap";
 
 // Define the groups for rendering and quick selection
 const SUBJECT_GROUPS = [
@@ -127,6 +134,9 @@ interface Toast {
 export default function Page() {
   const [mounted, setMounted] = useState(false);
 
+  // Tab navigation
+  const [activeTab, setActiveTab] = useState<ActiveTab>("calculadora");
+
   // Core configuration states
   const [colorMode, setColorMode] = useState<"dark" | "light">("dark");
   const [numSubjects, setNumSubjects] = useState<number>(1);
@@ -145,6 +155,8 @@ export default function Page() {
   // Active Toast messages
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [quickSelectToastShown, setQuickSelectToastShown] = useState<boolean>(false);
+
+  const prereqsMap = useMemo(() => getPrerequisitesMap(), []);
 
   // 1. Initial State Loading on Mount
   useEffect(() => {
@@ -250,7 +262,6 @@ export default function Page() {
     }
 
     // Sync 'completedSubjects' array (IDs of selected checkboxes in legacy system)
-    // The legacy checked status maps to 'Aprobada', 'Final', or 'No la voy a cursar'
     const checkedIds: number[] = [];
     Object.entries(nextStatuses).forEach(([sid, sval]) => {
       const parsedId = parseInt(sid, 10);
@@ -403,7 +414,7 @@ export default function Page() {
     if (!calculationResults) return;
 
     const getMateriaName = (itemStr: string) => {
-      const match = itemStr.match(/^\[-?\d+\]\s*(.+)\s*\((\d+)\)$/);
+      const match = itemStr.match(/^\[(?:-?\d+|\(i\)|i)\]\s*(.+)\s*\((\d+)\)$/);
       return match ? match[1].trim() : itemStr;
     };
 
@@ -529,23 +540,70 @@ export default function Page() {
         requestCount++;
       }
 
-      // Set recommended subjects
-      setCalculationResults({
-        materias_fijas: fijasFiltradas,
-        materias_opcionales: opcFiltradas,
-        cantidad_a_elegir: numSubjects - fijasFiltradas.length
-      });
-
       // Get all available subjects list
       const allAvailable = planFiltrado.puedoCursarEnCuatri(1);
-      const filteredAllAvailable = allAvailable.filter(item => {
+      let filteredAllAvailable = allAvailable.filter(item => {
         const id = getMateriaId(item);
         if (id === null) return !finalIgnorarIds.includes(0);
         if (id === 3671 && semester !== 1) return false;
         return !finalIgnorarIds.includes(id);
       });
-      setAllAvailableSubjects(filteredAllAvailable);
 
+      // --- CONDITIONAL ENROLLMENT RULES FOR 3671 IN SEMESTER 1 ---
+      // If semester === 1, check the 4 prerequisites of 3671 (3656, 3659, 3660, 3667)
+      if (semester === 1) {
+        const prev3671Approved = PREVIOUS_SUBJECTS_3671.map(id => {
+          const st = subjectStatuses[id];
+          return st === "Aprobada" || st === "Final" || st === "No la voy a cursar";
+        });
+        const all4PrevApproved = prev3671Approved.every(Boolean);
+
+        // Check if all 4 are either approved OR eligible to take this cuatri (i.e. their prereqs are met)
+        const all4PrevReadyForCond = PREVIOUS_SUBJECTS_3671.every(id => {
+          const st = subjectStatuses[id];
+          if (st === "Aprobada" || st === "Final" || st === "No la voy a cursar") return true;
+          const prereqs = prereqsMap[id] || [];
+          return prereqs.every(pId => {
+            const pst = subjectStatuses[pId];
+            return pst === "Aprobada" || pst === "Final" || pst === "No la voy a cursar";
+          });
+        });
+
+        // If all 4 are fulfilled (either approved or available to take) and NOT all 4 are approved:
+        if (all4PrevReadyForCond && !all4PrevApproved) {
+          const conditional3671Str = `[(i)] Proyecto Final de Carrera (3671)`;
+
+          // Replace or insert 3671 into recommended list
+          const existing3671IndexFijas = fijasFiltradas.findIndex(s => s.includes("(3671)"));
+          if (existing3671IndexFijas !== -1) {
+            fijasFiltradas[existing3671IndexFijas] = conditional3671Str;
+          } else {
+            const existing3671IndexOpc = opcFiltradas.findIndex(s => s.includes("(3671)"));
+            if (existing3671IndexOpc !== -1) {
+              opcFiltradas[existing3671IndexOpc] = conditional3671Str;
+            } else {
+              fijasFiltradas.push(conditional3671Str);
+            }
+          }
+
+          // Ensure it's in allAvailableSubjects as well
+          const existingAvailIndex = filteredAllAvailable.findIndex(s => s.includes("(3671)"));
+          if (existingAvailIndex !== -1) {
+            filteredAllAvailable[existingAvailIndex] = conditional3671Str;
+          } else {
+            filteredAllAvailable.push(conditional3671Str);
+          }
+        }
+      }
+
+      // Set recommended subjects
+      setCalculationResults({
+        materias_fijas: fijasFiltradas,
+        materias_opcionales: opcFiltradas,
+        cantidad_a_elegir: Math.max(0, numSubjects - fijasFiltradas.length)
+      });
+
+      setAllAvailableSubjects(filteredAllAvailable);
       setHasCalculated(true);
     } catch (error: any) {
       console.error(error);
@@ -597,34 +655,82 @@ export default function Page() {
   }, [searchQuery]);
 
   // Clean parsing helper for rendering result text
-  const parseResultItem = (itemStr: string) => {
-    // format is "[corchete] Nombre (id)"
-    const match = itemStr.match(/^\[(-?\d+)\]\s*(.+)\s*\((\d+)\)$/);
+  const parseResultItem = (itemStr: string): ParsedResultItem => {
+    // format is "[corchete] Nombre (id)" or "[(i)] Nombre (id)"
+    const match = itemStr.match(/^\[(\(i\)|i|-?\d+)\]\s*(.+)\s*\((\d+)\)$/);
     if (match) {
-      const [_, corchete, nombre, id] = match;
-      const val = parseInt(corchete, 10);
+      const [_, corcheteStr, nombre, idStr] = match;
+      const numId = parseInt(idStr, 10);
+      const isCondBracket = corcheteStr === "(i)" || corcheteStr === "i";
+      const val = isCondBracket ? 0 : parseInt(corcheteStr, 10);
+
       let badgeClass = "blue";
-      if (val <= 1) badgeClass = "critical";
+      if (isCondBracket) badgeClass = "info";
+      else if (val <= 1) badgeClass = "critical";
       else if (val === 2) badgeClass = "orange";
       else if (val === 3) badgeClass = "yellow";
       else if (val === 4) badgeClass = "green-light";
       else if (val === 5) badgeClass = "green-dark";
       else badgeClass = "blue";
 
+      let isConditional = isCondBracket;
+      let conditionalMessage = "";
+
+      if (isCondBracket || (numId === 3671 && semester === 1)) {
+        isConditional = true;
+        conditionalMessage = "Podrías cursarla si te anotás en cursada condicional y este mismo cuatri rendís las correlativas que te faltan. Para más información, contactate con el coordinador de la carrera.";
+      } else if ((semester === 2 || semester === 3) && PREVIOUS_SUBJECTS_3671.includes(numId)) {
+        isConditional = true;
+        conditionalMessage = "Esta materia podrías cursarla el primer cuatri junto al proyecto final si te anotás en cursada condicional. Para más información, contactate con el coordinador de la carrera.";
+      }
+
       return {
-        id,
+        id: idStr,
+        numericId: numId,
         nombre: nombre.trim(),
         corchete: val,
-        badgeClass
+        displayCorchete: isCondBracket ? "(i)" : val,
+        badgeClass,
+        isConditional,
+        conditionalMessage
       };
     }
+
+    const idMatch = itemStr.match(/\((\d+)\)/);
+    const numId = idMatch ? parseInt(idMatch[1], 10) : undefined;
     return {
-      id: "N/A",
+      id: numId ? String(numId) : "N/A",
+      numericId: numId,
       nombre: itemStr,
       corchete: 0,
+      displayCorchete: "0",
       badgeClass: "info"
     };
   };
+
+  // Maps for SubjectGraphMap
+  const recommendedMap = useMemo(() => {
+    const map: Record<number, ParsedResultItem> = {};
+    if (!calculationResults) return map;
+    calculationResults.materias_fijas.forEach(item => {
+      const parsed = parseResultItem(item);
+      if (parsed.numericId) map[parsed.numericId] = parsed;
+    });
+    calculationResults.materias_opcionales.forEach(item => {
+      const parsed = parseResultItem(item);
+      if (parsed.numericId) map[parsed.numericId] = parsed;
+    });
+    return map;
+  }, [calculationResults, semester]);
+
+  const availableMap = useMemo(() => {
+    const map: Record<number, ParsedResultItem> = {};
+    allAvailableSubjects.forEach(item => {
+      const parsed = parseResultItem(item);
+      if (parsed.numericId) map[parsed.numericId] = parsed;
+    });
+    return map;
+  }, [allAvailableSubjects, semester]);
 
   if (!mounted) {
     return (
@@ -672,6 +778,30 @@ export default function Page() {
         <p className="helper-text">
           Si no te querés anotar a las correlativas de una materia en final, marcá la materia del final como &quot;Final (ignorar)&quot;.
         </p>
+
+        {/* Section Navigation Tabs: Calculadora & Mapa */}
+        <div className="main-tab-nav">
+          <button
+            type="button"
+            className={`tab-nav-btn ${activeTab === "calculadora" ? "active" : ""}`}
+            onClick={() => setActiveTab("calculadora")}
+          >
+            <svg className="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            Calculadora
+          </button>
+          <button
+            type="button"
+            className={`tab-nav-btn ${activeTab === "mapa" ? "active" : ""}`}
+            onClick={() => setActiveTab("mapa")}
+          >
+            <svg className="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            Mapa de Correlatividades
+          </button>
+        </div>
       </header>
 
       {/* Stats Dashboard */}
@@ -701,432 +831,473 @@ export default function Page() {
         </div>
       </section>
 
-      {/* Search and filtering */}
-      <div className="search-container">
-        <svg className="search-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-        <input
-          type="text"
-          className="search-input"
-          placeholder="Buscar materia por nombre o código..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+      {/* View Switcher: Calculadora vs Mapa */}
+      {activeTab === "mapa" ? (
+        <SubjectGraphMap
+          subjectStatuses={subjectStatuses}
+          onStatusChange={handleSubjectStatusChange}
+          recommendedMap={recommendedMap}
+          availableMap={availableMap}
+          semester={semester}
+          onNavigateToCalculator={() => setActiveTab("calculadora")}
         />
-      </div>
-
-      {/* Main Grid */}
-      <main className="dashboard-grid">
-
-        {/* Quick Selection Card */}
-        <div className="glass-card quick-select-card">
-          <div className="quick-select-title" style={{ marginBottom: "14px" }}>
-            Aprobar todas las materias de:
+      ) : (
+        <>
+          {/* Search and filtering */}
+          <div className="search-container">
+            <svg className="search-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Buscar materia por nombre o código..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-            {SUBJECT_GROUPS.map(group => {
-              const isAllChecked = isGroupAllApproved(group.key);
-              const shortName = group.name === "Primer Año" ? "Todo 1°" :
-                group.name === "Segundo Año" ? "Todo 2°" :
-                  group.name === "Tercer Año" ? "Todo 3°" :
-                    group.name === "Cuarto Año" ? "Todo 4°" :
-                      group.name === "Quinto Año" ? "Todo 5°" : "Transversales";
-              return (
-                <label
-                  key={`quick-right-${group.key}`}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    margin: 0,
-                    cursor: "pointer",
-                    fontSize: "0.85rem",
-                    background: isAllChecked ? "rgba(37, 99, 235, 0.12)" : "rgba(255, 255, 255, 0.02)",
-                    border: isAllChecked ? "1px solid var(--btn-primary-bg)" : "1px solid var(--border-color)",
-                    padding: "8px 12px",
-                    borderRadius: "var(--radius-sm)",
-                    color: isAllChecked ? "var(--text-primary)" : "var(--text-secondary)",
-                    userSelect: "none",
-                    transition: "var(--transition-smooth)"
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isAllChecked}
-                    onChange={(e) => handleQuickSelectChange(group.key, e.target.checked)}
-                    style={{ cursor: "pointer" }}
-                  />
-                  {shortName}
-                </label>
-              );
-            })}
-          </div>
-        </div>
 
-        {/* Left Column: Subjects checklist */}
-        <section className="glass-card checklist-section">
-          <div className="subject-checklist-container">
-            {filteredGroups.map(group => {
-              const count = getGroupCompletedCount(group.key);
-              const isAllChecked = isGroupAllApproved(group.key);
+          {/* Main Grid */}
+          <main className="dashboard-grid">
 
-              return (
-                <div key={group.key} className="year-section">
-                  <div className="year-title">
-                    <span>{group.name}</span>
-                    <span style={{ fontSize: "0.85rem", fontWeight: "normal", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "10px" }}>
-                      <span>({count.passed} / {count.total})</span>
-                      <label style={{ display: "inline-flex", alignItems: "center", gap: "4px", margin: 0, cursor: "pointer", fontSize: "0.8rem", color: "var(--text-secondary)" }}>
-                        <input
-                          type="checkbox"
-                          checked={isAllChecked}
-                          onChange={(e) => handleQuickSelectChange(group.key, e.target.checked)}
-                          style={{ cursor: "pointer" }}
-                        />
-                        Aprobar Todo
-                      </label>
-                    </span>
-                  </div>
-
-                  <div className="subject-rows-container">
-                    {group.subjects.map(subject => {
-                      const status = subjectStatuses[subject.id] || "No cursada";
-
-                      const stateClass = status === "Final (ignorar)" ? "Final-ignorar" :
-                        status === "No la voy a cursar" ? "No-la-voy-a-cursar" : status;
-                      return (
-                        <div key={subject.id} className={`subject-row state-${stateClass}`}>
-                          <div className="subject-info">
-                            ({subject.id}) {subject.nombre}
-                          </div>
-
-                          <div className="subject-actions">
-                            {subject.id === 3680 ? (
-                              <>
-                                <button
-                                  type="button"
-                                  className="status-toggle-btn btn-no-cursar"
-                                  onClick={() => handleSubjectStatusChange(subject.id, "No la voy a cursar")}
-                                >
-                                  Ignorar
-                                </button>
-                                <button
-                                  type="button"
-                                  className="status-toggle-btn btn-aprobada"
-                                  onClick={() => handleSubjectStatusChange(subject.id, "Aprobada")}
-                                >
-                                  Aprobada
-                                </button>
-                                <button
-                                  type="button"
-                                  className="status-toggle-btn btn-no-cursada"
-                                  onClick={() => handleSubjectStatusChange(subject.id, "No cursada")}
-                                >
-                                  No cursada
-                                </button>
-                              </>
-                            ) : subject.id === 3671 ? (
-                              <>
-                                <button
-                                  type="button"
-                                  className="status-toggle-btn btn-aprobada"
-                                  onClick={() => handleSubjectStatusChange(subject.id, "Aprobada")}
-                                >
-                                  Aprobada
-                                </button>
-                                <button
-                                  type="button"
-                                  className="status-toggle-btn btn-final"
-                                  onClick={() => handleSubjectStatusChange(subject.id, "Final")}
-                                >
-                                  En curso
-                                </button>
-                                <button
-                                  type="button"
-                                  className="status-toggle-btn btn-no-cursada"
-                                  onClick={() => handleSubjectStatusChange(subject.id, "No cursada")}
-                                >
-                                  No cursada
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <button
-                                  type="button"
-                                  className="status-toggle-btn btn-aprobada"
-                                  onClick={() => handleSubjectStatusChange(subject.id, "Aprobada")}
-                                >
-                                  Aprobada
-                                </button>
-                                <button
-                                  type="button"
-                                  className="status-toggle-btn btn-final"
-                                  onClick={() => handleSubjectStatusChange(subject.id, "Final")}
-                                >
-                                  Final
-                                </button>
-                                <button
-                                  type="button"
-                                  className="status-toggle-btn btn-final-ignorar"
-                                  onClick={() => handleSubjectStatusChange(subject.id, "Final (ignorar)")}
-                                >
-                                  Final (ignorar)
-                                </button>
-                                <button
-                                  type="button"
-                                  className="status-toggle-btn btn-no-cursada"
-                                  onClick={() => handleSubjectStatusChange(subject.id, "No cursada")}
-                                >
-                                  No cursada
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-
-            {filteredGroups.length === 0 && (
-              <p style={{ textAlign: "center", color: "var(--text-muted)", padding: "16px" }}>
-                No se encontraron materias que coincidan con la búsqueda.
-              </p>
-            )}
-          </div>
-        </section>
-
-        {/* Right Column: Settings & Calculator controls */}
-        <section className="settings-panel">
-
-          {/* Configuration Card */}
-          <div className="glass-card">
-            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-
-              {/* Size config */}
-              <div className="setting-row">
-                <div className="setting-label">
-                  ¿A cuántas materias te querés anotar?
-                </div>
-                <div className="pill-grid">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(val => (
-                    <button
-                      key={val}
-                      type="button"
-                      className={`pill-btn ${numSubjects === val ? "active" : ""}`}
-                      onClick={() => handleNumSubjectsChange(val)}
+            {/* Quick Selection Card */}
+            <div className="glass-card quick-select-card">
+              <div className="quick-select-title" style={{ marginBottom: "14px" }}>
+                Aprobar todas las materias de:
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                {SUBJECT_GROUPS.map(group => {
+                  const isAllChecked = isGroupAllApproved(group.key);
+                  const shortName = group.name === "Primer Año" ? "Todo 1°" :
+                    group.name === "Segundo Año" ? "Todo 2°" :
+                      group.name === "Tercer Año" ? "Todo 3°" :
+                        group.name === "Cuarto Año" ? "Todo 4°" :
+                          group.name === "Quinto Año" ? "Todo 5°" : "Transversales";
+                  return (
+                    <label
+                      key={`quick-right-${group.key}`}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        margin: 0,
+                        cursor: "pointer",
+                        fontSize: "0.85rem",
+                        background: isAllChecked ? "rgba(37, 99, 235, 0.12)" : "rgba(255, 255, 255, 0.02)",
+                        border: isAllChecked ? "1px solid var(--btn-primary-bg)" : "1px solid var(--border-color)",
+                        padding: "8px 12px",
+                        borderRadius: "var(--radius-sm)",
+                        color: isAllChecked ? "var(--text-primary)" : "var(--text-secondary)",
+                        userSelect: "none",
+                        transition: "var(--transition-smooth)"
+                      }}
                     >
-                      {val}
-                    </button>
-                  ))}
-                </div>
-                {numSubjects >= 7 && (
-                  <div className="lucky-warning">
-                    <span>😱 ¡Mucha suerte!</span>
-                  </div>
+                      <input
+                        type="checkbox"
+                        checked={isAllChecked}
+                        onChange={(e) => handleQuickSelectChange(group.key, e.target.checked)}
+                        style={{ cursor: "pointer" }}
+                      />
+                      {shortName}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Left Column: Subjects checklist */}
+            <section className="glass-card checklist-section">
+              <div className="subject-checklist-container">
+                {filteredGroups.map(group => {
+                  const count = getGroupCompletedCount(group.key);
+                  const isAllChecked = isGroupAllApproved(group.key);
+
+                  return (
+                    <div key={group.key} className="year-section">
+                      <div className="year-title">
+                        <span>{group.name}</span>
+                        <span style={{ fontSize: "0.85rem", fontWeight: "normal", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "10px" }}>
+                          <span>({count.passed} / {count.total})</span>
+                          <label style={{ display: "inline-flex", alignItems: "center", gap: "4px", margin: 0, cursor: "pointer", fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+                            <input
+                              type="checkbox"
+                              checked={isAllChecked}
+                              onChange={(e) => handleQuickSelectChange(group.key, e.target.checked)}
+                              style={{ cursor: "pointer" }}
+                            />
+                            Aprobar Todo
+                          </label>
+                        </span>
+                      </div>
+
+                      <div className="subject-rows-container">
+                        {group.subjects.map(subject => {
+                          const status = subjectStatuses[subject.id] || "No cursada";
+
+                          const stateClass = status === "Final (ignorar)" ? "Final-ignorar" :
+                            status === "No la voy a cursar" ? "No-la-voy-a-cursar" : status;
+                          return (
+                            <div key={subject.id} className={`subject-row state-${stateClass}`}>
+                              <div className="subject-info">
+                                ({subject.id}) {subject.nombre}
+                              </div>
+
+                              <div className="subject-actions">
+                                {subject.id === 3680 ? (
+                                  <>
+                                    <button
+                                      type="button"
+                                      className="status-toggle-btn btn-no-cursar"
+                                      onClick={() => handleSubjectStatusChange(subject.id, "No la voy a cursar")}
+                                    >
+                                      Ignorar
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="status-toggle-btn btn-aprobada"
+                                      onClick={() => handleSubjectStatusChange(subject.id, "Aprobada")}
+                                    >
+                                      Aprobada
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="status-toggle-btn btn-no-cursada"
+                                      onClick={() => handleSubjectStatusChange(subject.id, "No cursada")}
+                                    >
+                                      No cursada
+                                    </button>
+                                  </>
+                                ) : subject.id === 3671 ? (
+                                  <>
+                                    <button
+                                      type="button"
+                                      className="status-toggle-btn btn-aprobada"
+                                      onClick={() => handleSubjectStatusChange(subject.id, "Aprobada")}
+                                    >
+                                      Aprobada
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="status-toggle-btn btn-final"
+                                      onClick={() => handleSubjectStatusChange(subject.id, "Final")}
+                                    >
+                                      En curso
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="status-toggle-btn btn-no-cursada"
+                                      onClick={() => handleSubjectStatusChange(subject.id, "No cursada")}
+                                    >
+                                      No cursada
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <button
+                                      type="button"
+                                      className="status-toggle-btn btn-aprobada"
+                                      onClick={() => handleSubjectStatusChange(subject.id, "Aprobada")}
+                                    >
+                                      Aprobada
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="status-toggle-btn btn-final"
+                                      onClick={() => handleSubjectStatusChange(subject.id, "Final")}
+                                    >
+                                      Final
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="status-toggle-btn btn-final-ignorar"
+                                      onClick={() => handleSubjectStatusChange(subject.id, "Final (ignorar)")}
+                                    >
+                                      Final (ignorar)
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="status-toggle-btn btn-no-cursada"
+                                      onClick={() => handleSubjectStatusChange(subject.id, "No cursada")}
+                                    >
+                                      No cursada
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {filteredGroups.length === 0 && (
+                  <p style={{ textAlign: "center", color: "var(--text-muted)", padding: "16px" }}>
+                    No se encontraron materias que coincidan con la búsqueda.
+                  </p>
                 )}
               </div>
+            </section>
 
-              {/* Semester config */}
-              <div className="setting-row">
-                <div className="setting-label">
-                  ¿Para qué cuatrimestre te vas a anotar?
-                </div>
-                <div className="pill-grid">
-                  {[
-                    { label: "Primero", val: 1 },
-                    { label: "Segundo", val: 2 },
-                    { label: "Verano", val: 3 }
-                  ].map(opt => (
-                    <button
-                      key={opt.val}
-                      type="button"
-                      className={`pill-btn ${semester === opt.val ? "active" : ""}`}
-                      onClick={() => handleSemesterChange(opt.val)}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+            {/* Right Column: Settings & Calculator controls */}
+            <section className="settings-panel">
 
-              {/* Title priority config */}
-              <div className="setting-row">
-                <div className="setting-label">
-                  ¿Querés priorizar el título intermedio?
-                  <button
-                    className="help-trigger"
-                    data-tooltip="Activar esto va a hacer que el sistema te recomiende cursar RSU (materia de segundo sin correlativas posteriores) antes que cualquier materia de cuarto o quinto. No es lo más óptimo para el tiempo de recibirse pero sí para el del intermedio."
-                  >
-                    ⓘ
-                  </button>
-                </div>
-                <div className="pill-grid">
-                  {[
-                    { label: "No", val: false },
-                    { label: "Sí", val: true }
-                  ].map(opt => (
-                    <button
-                      key={String(opt.val)}
-                      type="button"
-                      className={`pill-btn ${intermediatePriority === opt.val ? "active" : ""}`}
-                      onClick={() => handlePriorityChange(opt.val)}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              {/* Configuration Card */}
+              <div className="glass-card">
+                <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
 
-              {/* Reset/Calc CTA Row */}
-              <div className="action-buttons-row">
-                <button
-                  type="button"
-                  className="main-btn btn-calculate"
-                  onClick={handleCalculate}
-                >
-                  Calcular recomendación
-                </button>
+                  {/* Size config */}
+                  <div className="setting-row">
+                    <div className="setting-label">
+                      ¿A cuántas materias te querés anotar?
+                    </div>
+                    <div className="pill-grid">
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(val => (
+                        <button
+                          key={val}
+                          type="button"
+                          className={`pill-btn ${numSubjects === val ? "active" : ""}`}
+                          onClick={() => handleNumSubjectsChange(val)}
+                        >
+                          {val}
+                        </button>
+                      ))}
+                    </div>
+                    {numSubjects >= 7 && (
+                      <div className="lucky-warning">
+                        <span>😱 ¡Mucha suerte!</span>
+                      </div>
+                    )}
+                  </div>
 
-                <button
-                  type="button"
-                  className="main-btn btn-reset"
-                  onClick={handleReset}
-                >
-                  Resetear
-                </button>
-              </div>
+                  {/* Semester config */}
+                  <div className="setting-row">
+                    <div className="setting-label">
+                      ¿Para qué cuatrimestre te vas a anotar?
+                    </div>
+                    <div className="pill-grid">
+                      {[
+                        { label: "Primero", val: 1 },
+                        { label: "Segundo", val: 2 },
+                        { label: "Verano", val: 3 }
+                      ].map(opt => (
+                        <button
+                          key={opt.val}
+                          type="button"
+                          className={`pill-btn ${semester === opt.val ? "active" : ""}`}
+                          onClick={() => handleSemesterChange(opt.val)}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-            </div>
-          </div>
-
-          {/* Results Display Panel */}
-          {hasCalculated && (
-            <div className="glass-card">
-              <div className="results-container">
-
-                {/* 1. Recommended subjects next semester */}
-                <div>
-                  <div className="result-card-heading">
-                    <span>Materias recomendadas para cursar:</span>
-                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                      <button
-                        type="button"
-                        onClick={handleExportToClipboard}
-                        style={{
-                          background: "rgba(59, 130, 246, 0.12)",
-                          color: "var(--status-no-cursar-text)",
-                          border: "1px solid rgba(59, 130, 246, 0.2)",
-                          borderRadius: "4px",
-                          padding: "4px 8px",
-                          fontSize: "0.8rem",
-                          fontWeight: "600",
-                          cursor: "pointer",
-                          transition: "var(--transition-smooth)"
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "rgba(59, 130, 246, 0.22)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "rgba(59, 130, 246, 0.12)";
-                        }}
-                      >
-                        📋 Copiar
-                      </button>
+                  {/* Title priority config */}
+                  <div className="setting-row">
+                    <div className="setting-label">
+                      ¿Querés priorizar el título intermedio?
                       <button
                         className="help-trigger"
-                        data-tooltip="El sistema calcula el camino de correlativas más largo hasta recibirte y en base a eso te ordena las materias según la longitud de su camino, de mayor a menor. El número a la izquierda significa cuántos cuatris tenés para aprobarla (sin contar verano), antes de atrasarte en tu tiempo mínimo hasta recibirse."
+                        data-tooltip="Activar esto va a hacer que el sistema te recomiende cursar RSU (materia de segundo sin correlativas posteriores) antes que cualquier materia de cuarto o quinto. No es lo más óptimo para el tiempo de recibirse pero sí para el del intermedio."
                       >
                         ⓘ
                       </button>
                     </div>
+                    <div className="pill-grid">
+                      {[
+                        { label: "No", val: false },
+                        { label: "Sí", val: true }
+                      ].map(opt => (
+                        <button
+                          key={String(opt.val)}
+                          type="button"
+                          className={`pill-btn ${intermediatePriority === opt.val ? "active" : ""}`}
+                          onClick={() => handlePriorityChange(opt.val)}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
-                  {calculationResults && (calculationResults.materias_fijas.length > 0 || calculationResults.materias_opcionales.length > 0) ? (
-                    <div className="result-list">
-                      {calculationResults.materias_fijas.map((item, idx) => {
-                        const parsed = parseResultItem(item);
-                        return (
-                          <div key={`fija-${idx}`} className="result-item">
-                            <span className={`result-badge ${parsed.badgeClass}`}>
-                              {parsed.corchete}
-                            </span>
-                            <span className="result-text">{parsed.nombre}</span>
-                            <span className="result-code" style={{ marginLeft: "auto", color: "var(--text-muted)", fontSize: "0.875rem" }}>
-                              ({parsed.id})
-                            </span>
-                          </div>
-                        );
-                      })}
+                  {/* Reset/Calc CTA Row */}
+                  <div className="action-buttons-row">
+                    <button
+                      type="button"
+                      className="main-btn btn-calculate"
+                      onClick={handleCalculate}
+                    >
+                      Calcular recomendación
+                    </button>
 
-                      {calculationResults.materias_opcionales.length > 0 && calculationResults.cantidad_a_elegir > 0 && (
-                        <div style={{ marginTop: "12px", marginBottom: "4px" }}>
-                          <p style={{ fontSize: "0.875rem", fontWeight: "600", color: "var(--text-secondary)" }}>
-                            Más {calculationResults.cantidad_a_elegir} de las siguientes materias, según tu preferencia:
-                          </p>
-                        </div>
-                      )}
-
-                      {calculationResults.materias_opcionales.map((item, idx) => {
-                        const parsed = parseResultItem(item);
-                        return (
-                          <div key={`opc-${idx}`} className="result-item" style={{ borderStyle: "dashed" }}>
-                            <span className={`result-badge ${parsed.badgeClass}`}>
-                              {parsed.corchete}
-                            </span>
-                            <span className="result-text">{parsed.nombre}</span>
-                            <span className="result-code" style={{ marginLeft: "auto", color: "var(--text-muted)", fontSize: "0.875rem" }}>
-                              ({parsed.id})
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="empty-results">No tenés ninguna materia disponible para cursar actualmente.</div>
-                  )}
-                </div>
-
-                {/* 2. All unlocked subjects (puedo cursar) */}
-                <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "32px", marginTop: "32px" }}>
-                  <div className="result-card-heading">
-                    <span>Todas las materias que podrías cursar:</span>
+                    <button
+                      type="button"
+                      className="main-btn btn-reset"
+                      onClick={handleReset}
+                    >
+                      Resetear
+                    </button>
                   </div>
-                  <p style={{ fontSize: "0.825rem", color: "var(--text-muted)", marginBottom: "12px" }}>
-                    Mientras más bajo el número, más urgente es cursarla.
-                  </p>
 
-                  {allAvailableSubjects.length > 0 ? (
-                    <div className="result-list">
-                      {allAvailableSubjects.map((item, idx) => {
-                        const parsed = parseResultItem(item);
-                        return (
-                          <div key={`avail-${idx}`} className="result-item">
-                            <span className={`result-badge ${parsed.badgeClass}`}>
-                              {parsed.corchete}
-                            </span>
-                            <span className="result-text">{parsed.nombre}</span>
-                            <span className="result-code" style={{ marginLeft: "auto", color: "var(--text-muted)", fontSize: "0.875rem" }}>
-                              ({parsed.id})
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="empty-results">No tenés ninguna materia disponible para cursar actualmente.</div>
-                  )}
                 </div>
-
               </div>
-            </div>
-          )}
 
-        </section>
+              {/* Results Display Panel */}
+              {hasCalculated && (
+                <div className="glass-card">
+                  <div className="results-container">
 
-      </main>
+                    {/* 1. Recommended subjects next semester */}
+                    <div>
+                      <div className="result-card-heading">
+                        <span>Materias recomendadas para cursar:</span>
+                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                          <button
+                            type="button"
+                            onClick={handleExportToClipboard}
+                            style={{
+                              background: "rgba(59, 130, 246, 0.12)",
+                              color: "var(--status-no-cursar-text)",
+                              border: "1px solid rgba(59, 130, 246, 0.2)",
+                              borderRadius: "4px",
+                              padding: "4px 8px",
+                              fontSize: "0.8rem",
+                              fontWeight: "600",
+                              cursor: "pointer",
+                              transition: "var(--transition-smooth)"
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "rgba(59, 130, 246, 0.22)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "rgba(59, 130, 246, 0.12)";
+                            }}
+                          >
+                            📋 Copiar
+                          </button>
+                          <button
+                            className="help-trigger"
+                            data-tooltip="El sistema calcula el camino de correlativas más largo hasta recibirte y en base a eso te ordena las materias según la longitud de su camino, de mayor a menor. El número a la izquierda significa cuántos cuatris tenés para aprobarla (sin contar verano), antes de atrasarte en tu tiempo mínimo hasta recibirse."
+                          >
+                            ⓘ
+                          </button>
+                        </div>
+                      </div>
+
+                      {calculationResults && (calculationResults.materias_fijas.length > 0 || calculationResults.materias_opcionales.length > 0) ? (
+                        <div className="result-list">
+                          {calculationResults.materias_fijas.map((item, idx) => {
+                            const parsed = parseResultItem(item);
+                            return (
+                              <div key={`fija-${idx}`} className="result-item">
+                                <span className={`result-badge ${parsed.badgeClass}`}>
+                                  {parsed.displayCorchete}
+                                </span>
+                                <span className="result-text">{parsed.nombre}</span>
+                                {parsed.isConditional && (
+                                  <span
+                                    className="conditional-info-trigger"
+                                    data-tooltip={parsed.conditionalMessage}
+                                    title={parsed.conditionalMessage}
+                                  >
+                                    (i)
+                                  </span>
+                                )}
+                                <span className="result-code" style={{ marginLeft: "auto", color: "var(--text-muted)", fontSize: "0.875rem" }}>
+                                  ({parsed.id})
+                                </span>
+                              </div>
+                            );
+                          })}
+
+                          {calculationResults.materias_opcionales.length > 0 && calculationResults.cantidad_a_elegir > 0 && (
+                            <div style={{ marginTop: "12px", marginBottom: "4px" }}>
+                              <p style={{ fontSize: "0.875rem", fontWeight: "600", color: "var(--text-secondary)" }}>
+                                Más {calculationResults.cantidad_a_elegir} de las siguientes materias, según tu preferencia:
+                              </p>
+                            </div>
+                          )}
+
+                          {calculationResults.materias_opcionales.map((item, idx) => {
+                            const parsed = parseResultItem(item);
+                            return (
+                              <div key={`opc-${idx}`} className="result-item" style={{ borderStyle: "dashed" }}>
+                                <span className={`result-badge ${parsed.badgeClass}`}>
+                                  {parsed.displayCorchete}
+                                </span>
+                                <span className="result-text">{parsed.nombre}</span>
+                                {parsed.isConditional && (
+                                  <span
+                                    className="conditional-info-trigger"
+                                    data-tooltip={parsed.conditionalMessage}
+                                    title={parsed.conditionalMessage}
+                                  >
+                                    (i)
+                                  </span>
+                                )}
+                                <span className="result-code" style={{ marginLeft: "auto", color: "var(--text-muted)", fontSize: "0.875rem" }}>
+                                  ({parsed.id})
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="empty-results">No tenés ninguna materia disponible para cursar actualmente.</div>
+                      )}
+                    </div>
+
+                    {/* 2. All unlocked subjects (puedo cursar) */}
+                    <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "32px", marginTop: "32px" }}>
+                      <div className="result-card-heading">
+                        <span>Todas las materias que podrías cursar:</span>
+                      </div>
+                      <p style={{ fontSize: "0.825rem", color: "var(--text-muted)", marginBottom: "12px" }}>
+                        Mientras más bajo el número, más urgente es cursarla.
+                      </p>
+
+                      {allAvailableSubjects.length > 0 ? (
+                        <div className="result-list">
+                          {allAvailableSubjects.map((item, idx) => {
+                            const parsed = parseResultItem(item);
+                            return (
+                              <div key={`avail-${idx}`} className="result-item">
+                                <span className={`result-badge ${parsed.badgeClass}`}>
+                                  {parsed.displayCorchete}
+                                </span>
+                                <span className="result-text">{parsed.nombre}</span>
+                                {parsed.isConditional && (
+                                  <span
+                                    className="conditional-info-trigger"
+                                    data-tooltip={parsed.conditionalMessage}
+                                    title={parsed.conditionalMessage}
+                                  >
+                                    (i)
+                                  </span>
+                                )}
+                                <span className="result-code" style={{ marginLeft: "auto", color: "var(--text-muted)", fontSize: "0.875rem" }}>
+                                  ({parsed.id})
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="empty-results">No tenés ninguna materia disponible para cursar actualmente.</div>
+                      )}
+                    </div>
+
+                  </div>
+                </div>
+              )}
+
+            </section>
+
+          </main>
+        </>
+      )}
 
       {/* Footer link section */}
       <footer className="footer-section">
@@ -1153,3 +1324,4 @@ export default function Page() {
     </div>
   );
 }
+

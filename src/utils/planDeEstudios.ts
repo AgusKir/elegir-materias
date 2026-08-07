@@ -645,3 +645,55 @@ export const TABLA_NOMBRES = `
 904     Inglés IV
 911     Computación I
 912     Computación II`;
+
+export const PREVIOUS_SUBJECTS_3671 = [3656, 3659, 3660, 3667];
+
+export function getPrerequisitesMap(): Record<number, number[]> {
+  const map: Record<number, number[]> = {};
+  LISTADO_MATERIAS.trim().split('\n').forEach(line => {
+    if (!line.trim()) return;
+    const [idStr, prereqsStr] = line.split(':');
+    const id = parseInt(idStr.trim(), 10);
+    if (!isNaN(id)) {
+      if (prereqsStr && prereqsStr.trim()) {
+        map[id] = prereqsStr.split(',')
+          .map(p => parseInt(p.trim(), 10))
+          .filter(p => !isNaN(p));
+      } else {
+        map[id] = [];
+      }
+    }
+  });
+  return map;
+}
+
+export function getSuccessorsMap(): Record<number, number[]> {
+  const prereqMap = getPrerequisitesMap();
+  const succMap: Record<number, number[]> = {};
+  Object.keys(prereqMap).forEach(key => {
+    succMap[parseInt(key, 10)] = [];
+  });
+  Object.entries(prereqMap).forEach(([idStr, prereqs]) => {
+    const id = parseInt(idStr, 10);
+    prereqs.forEach(prereq => {
+      if (!succMap[prereq]) succMap[prereq] = [];
+      if (!succMap[prereq].includes(id)) {
+        succMap[prereq].push(id);
+      }
+    });
+  });
+  return succMap;
+}
+
+export function getSubjectNamesMap(): Record<number, string> {
+  const map: Record<number, string> = {};
+  TABLA_NOMBRES.trim().split('\n').forEach(line => {
+    if (!line.trim()) return;
+    const match = line.trim().match(/^(\d+)\s+(.+)$/);
+    if (match) {
+      const [_, idStr, nombre] = match;
+      map[parseInt(idStr, 10)] = nombre.trim();
+    }
+  });
+  return map;
+}

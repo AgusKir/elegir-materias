@@ -774,10 +774,6 @@ export default function Page() {
       <header className="header-section">
         <h1 className="main-title">Calculá las mejores materias a las que anotarte</h1>
         <h2 className="subtitle">Elegí las materias que aprobaste hasta ahora y obtené una recomendación óptima para recibirte en el menor tiempo posible.</h2>
-        <div className="subtitle-green">Las correlativas están actualizadas para 2026 :D</div>
-        <p className="helper-text">
-          Si no te querés anotar a las correlativas de una materia en final, marcá la materia del final como &quot;Final (ignorar)&quot;.
-        </p>
 
         {/* Section Navigation Tabs: Calculadora & Mapa */}
         <div className="main-tab-nav">
@@ -1004,6 +1000,7 @@ export default function Page() {
                                       type="button"
                                       className="status-toggle-btn btn-final"
                                       onClick={() => handleSubjectStatusChange(subject.id, "Final")}
+                                      title="Te va a recomendar las correlativas. No las vas a poder promocionar salvo que metas el final"
                                     >
                                       Final
                                     </button>
@@ -1011,6 +1008,7 @@ export default function Page() {
                                       type="button"
                                       className="status-toggle-btn btn-final-ignorar"
                                       onClick={() => handleSubjectStatusChange(subject.id, "Final (ignorar)")}
+                                      title="No te va a recomendar las correlativas"
                                     >
                                       Final (ignorar)
                                     </button>
@@ -1100,7 +1098,7 @@ export default function Page() {
                       ¿Querés priorizar el título intermedio?
                       <button
                         className="help-trigger"
-                        data-tooltip="Activar esto va a hacer que el sistema te recomiende cursar RSU (materia de segundo sin correlativas posteriores) antes que cualquier materia de cuarto o quinto. No es lo más óptimo para el tiempo de recibirse pero sí para el del intermedio."
+                        data-tooltip="Activar esto va a hacer que, por ejemplo, te recomiende cursar RSU (materia de segundo sin correlativas posteriores) antes que cualquier materia de cuarto o quinto. No es lo más óptimo para el tiempo de recibirse pero sí para el intermedio."
                       >
                         ⓘ
                       </button>

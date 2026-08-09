@@ -159,7 +159,7 @@ export const SEMESTER_COLUMNS: SemesterColumn[] = [
 
 export const TRANSVERSALES_LINES = [
   {
-    groupTitle: "Línea Inglés",
+    groupTitle: "Inglés",
     subjects: [
       { id: 901, nombre: "Inglés I" },
       { id: 902, nombre: "Inglés II" },
@@ -168,7 +168,7 @@ export const TRANSVERSALES_LINES = [
     ]
   },
   {
-    groupTitle: "Línea Computación",
+    groupTitle: "Computación",
     subjects: [
       { id: 911, nombre: "Computación I" },
       { id: 912, nombre: "Computación II" }
@@ -456,7 +456,7 @@ export default function SubjectGraphMap({
           </div>
           <div className="plane-node-title">{subject.nombre}</div>
           <div className="plane-node-status-label">
-            {status === "Final" ? "En curso" : status === "No la voy a cursar" ? "Ignorada" : status}
+            {status === "Final" ? (subject.id === 3671 ? "En curso" : "Final") : status === "No la voy a cursar" ? "Ignorada" : status}
           </div>
         </div>
       </div>
@@ -480,20 +480,21 @@ export default function SubjectGraphMap({
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-
-          <label className="toggle-connections-label">
-            <input
-              type="checkbox"
-              checked={showAllConnections}
-              onChange={(e) => setShowAllConnections(e.target.checked)}
-            />
-            <span>Mostrar todas las correlativas</span>
-          </label>
         </div>
 
         <div className="graph-toolbar-right">
           {/* Zoom controls */}
           <div className="zoom-controls">
+            {zoomLevel !== 1 && (
+              <button
+                type="button"
+                className="zoom-reset-btn"
+                onClick={() => setZoomLevel(1)}
+                title="Restablecer zoom"
+              >
+                100%
+              </button>
+            )}
             <button
               type="button"
               className="zoom-btn"
@@ -511,16 +512,6 @@ export default function SubjectGraphMap({
             >
               +
             </button>
-            {zoomLevel !== 1 && (
-              <button
-                type="button"
-                className="zoom-reset-btn"
-                onClick={() => setZoomLevel(1)}
-                title="Restablecer zoom"
-              >
-                100%
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -547,10 +538,6 @@ export default function SubjectGraphMap({
             <span className="legend-chip pastel-green-light-soft">[4-5] Baja</span>
             <span className="legend-chip pastel-info-soft">[(i)] Condicional</span>
           </div>
-        </div>
-
-        <div className="legend-hint">
-          💡 <b>Conexiones directas al pasar el mouse:</b> Azul cian (`#00f2fe`) para <b>prerrequisito directo</b>, Rosa/Magenta (`#ff007f`) para <b>materia que desbloquea directamente</b>.
         </div>
       </div>
 
@@ -609,7 +596,6 @@ export default function SubjectGraphMap({
           <div className="plane-transversales-section">
             <div className="transversales-header">
               <span className="transversales-title">Materias Transversales</span>
-              <span className="transversales-subtitle">Se cursan a lo largo de la carrera sin correlativas hacia el plan principal</span>
             </div>
 
             <div className="transversales-grid-row">
@@ -735,6 +721,7 @@ export default function SubjectGraphMap({
                       type="button"
                       className={`status-toggle-btn btn-final-ignorar ${selectedSubjectData.status === "Final (ignorar)" ? "active-btn" : ""}`}
                       onClick={() => onStatusChange(selectedSubjectData.id, "Final (ignorar)")}
+                      title="Si no te querés anotar a las correlativas de una materia en final, marcá la materia del final como &quot;Final (ignorar)&quot;"
                     >
                       Final (ignorar)
                     </button>
@@ -753,8 +740,8 @@ export default function SubjectGraphMap({
             {/* Prerequisites */}
             <div className="modal-dependencies-section">
               <div className="modal-subheading">
-                <span>Prerrequisitos ({selectedSubjectData.prereqs.length})</span>
-                <span className="subheading-hint">Materias que necesitás para cursar esta</span>
+                <span>Necesita ({selectedSubjectData.prereqs.length})</span>
+                <span className="subheading-hint">Correlativas anteriores</span>
               </div>
               {selectedSubjectData.prereqs.length > 0 ? (
                 <div className="dep-items-list">
@@ -782,8 +769,8 @@ export default function SubjectGraphMap({
             {/* Successors */}
             <div className="modal-dependencies-section">
               <div className="modal-subheading">
-                <span>Materias que desbloquea ({selectedSubjectData.succs.length})</span>
-                <span className="subheading-hint">Materias que podrás cursar al aprobar esta</span>
+                <span>Desbloquea ({selectedSubjectData.succs.length})</span>
+                <span className="subheading-hint">Correlativas posteriores</span>
               </div>
               {selectedSubjectData.succs.length > 0 ? (
                 <div className="dep-items-list">

@@ -158,7 +158,8 @@ export default function Page() {
   const [overwriteWarningSlotId, setOverwriteWarningSlotId] = useState<number | null>(null);
   const [saveStates, setSaveStates] = useState<Record<number, SaveState | null>>({ 1: null, 2: null, 3: null });
 
-  // Optional subjects selection for "Ver siguiente cuatri"
+  // Simulation mode for "Ver siguiente cuatri"
+  const [isSimulatingNext, setIsSimulatingNext] = useState<boolean>(false);
   const [selectedOptionalIds, setSelectedOptionalIds] = useState<number[]>([]);
 
   // Active Toast messages
@@ -569,20 +570,20 @@ export default function Page() {
   // Next semester subject selection toggle
   const toggleNextSemesterSubject = (numericId?: number) => {
     if (!numericId) return;
-    setSelectedOptionalIds(prev => {
-      if (prev.includes(numericId)) {
-        return prev.filter(id => id !== numericId);
-      } else {
-        if (prev.length >= numSubjects) {
-          if (numSubjects === 1) {
-            return [numericId];
-          }
+
+    if (selectedOptionalIds.includes(numericId)) {
+      setSelectedOptionalIds(prev => prev.filter(id => id !== numericId));
+    } else {
+      if (selectedOptionalIds.length >= numSubjects) {
+        if (numSubjects === 1) {
+          setSelectedOptionalIds([numericId]);
+        } else {
           showToast(`Ya seleccionaste las ${numSubjects} materias a cursar. Podés hacer click sobre una materia previamente seleccionada para desmarcarla.`, 4000);
-          return prev;
         }
-        return [...prev, numericId];
+      } else {
+        setSelectedOptionalIds(prev => [...prev, numericId]);
       }
-    });
+    }
   };
 
   // 6. Core calculate action
@@ -762,6 +763,7 @@ export default function Page() {
       });
 
       setAllAvailableSubjects(filteredAllAvailable);
+      setIsSimulatingNext(false);
       setHasCalculated(true);
     } catch (error: any) {
       console.error(error);
@@ -769,7 +771,35 @@ export default function Page() {
     }
   };
 
-  // "Ver siguiente cuatri" handler
+  // Start simulation mode handler
+  const handleStartSimulation = () => {
+    if (!hasCalculated || allAvailableSubjects.length === 0) return;
+
+    const targetCount = Math.min(numSubjects, allAvailableSubjects.length);
+    if (selectedOptionalIds.length < targetCount) {
+      const preselected: number[] = [];
+      const addIfValid = (itemStr: string) => {
+        const parsed = parseResultItem(itemStr);
+        if (parsed.numericId && !preselected.includes(parsed.numericId) && preselected.length < targetCount) {
+          preselected.push(parsed.numericId);
+        }
+      };
+      if (calculationResults) {
+        calculationResults.materias_fijas.forEach(addIfValid);
+        calculationResults.materias_opcionales.forEach(addIfValid);
+      }
+      allAvailableSubjects.forEach(addIfValid);
+      setSelectedOptionalIds(preselected);
+    }
+    setIsSimulatingNext(true);
+  };
+
+  // Cancel simulation mode handler
+  const handleCancelSimulation = () => {
+    setIsSimulatingNext(false);
+  };
+
+  // Confirm and advance semester handler
   const handleNextSemester = () => {
     if (!hasCalculated || allAvailableSubjects.length === 0) return;
 
@@ -782,8 +812,18 @@ export default function Page() {
 
     const nextStatuses = { ...subjectStatuses };
     selectedOptionalIds.forEach(id => {
-      nextStatuses[id] = "Aprobada";
-      localStorage.setItem(`subject-status-${id}`, "Aprobada");
+      if (id === 3671) {
+        if (subjectStatuses[3671] === "Final") {
+          nextStatuses[3671] = "Aprobada";
+          localStorage.setItem("subject-status-3671", "Aprobada");
+        } else {
+          nextStatuses[3671] = "Final";
+          localStorage.setItem("subject-status-3671", "Final");
+        }
+      } else {
+        nextStatuses[id] = "Aprobada";
+        localStorage.setItem(`subject-status-${id}`, "Aprobada");
+      }
     });
 
     setSubjectStatuses(nextStatuses);
@@ -802,9 +842,11 @@ export default function Page() {
     setSemester(nextSem);
     localStorage.setItem("semester", String(nextSem));
 
+    const countApproved = selectedOptionalIds.length;
     setSelectedOptionalIds([]);
+    setIsSimulatingNext(false);
 
-    showToast(`¡Avanzaste al siguiente cuatrimestre! Se aprobaron las ${selectedOptionalIds.length} materias seleccionadas y se calculó la nueva recomendación.`, 6000);
+    showToast(`¡Avanzaste al siguiente cuatrimestre! Se aprobaron las ${countApproved} materias seleccionadas y se calculó la nueva recomendación.`, 6000);
 
     // Recalculate instantly
     handleCalculate(nextStatuses, nextSem);
@@ -833,6 +875,8 @@ export default function Page() {
       setIntermediatePriority(false);
       setCalculationResults(null);
       setAllAvailableSubjects([]);
+      setSelectedOptionalIds([]);
+      setIsSimulatingNext(false);
       setHasCalculated(false);
 
       showToast("Selección reseteada con éxito.");
@@ -1365,93 +1409,171 @@ export default function Page() {
                   <div className="results-container">
 
                     {/* 1. Recommended subjects next semester */}
-                    <div>
-                      <div className="result-card-heading">
-                        <span>Materias recomendadas para cursar:</span>
-                        <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-                          <button
-                            type="button"
-                            className="btn-next-semester"
-                            onClick={handleNextSemester}
-                            title="Aprueba automáticamente las materias recomendadas, cambia de cuatrimestre y calcula la nueva recomendación"
-                          >
-                            ⏩ Ver siguiente cuatri
-                          </button>
-                          <button
-                            type="button"
-                            onClick={handleExportToClipboard}
-                            className="btn-copy-results"
-                          >
-                            📋 Copiar
-                          </button>
-                          <button
-                            className="help-trigger"
-                            data-tooltip="El sistema calcula el camino de correlativas más largo hasta recibirte y en base a eso te ordena las materias según la longitud de su camino, de mayor a menor. El número a la izquierda significa cuántos cuatris tenés para aprobarla (sin contar verano), antes de atrasarte en tu tiempo mínimo hasta recibirse."
-                          >
-                            ⓘ
-                          </button>
+                    {!isSimulatingNext && (
+                      <div>
+                        <div className="result-card-heading">
+                          <span>Materias recomendadas para cursar:</span>
+                          <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                            <button
+                              type="button"
+                              className="btn-next-semester"
+                              onClick={handleStartSimulation}
+                              title="Simular el siguiente cuatrimestre seleccionando qué materias vas a aprobar"
+                            >
+                              ⏩ Simular siguiente cuatri
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleExportToClipboard}
+                              className="btn-copy-results"
+                            >
+                              📋 Copiar
+                            </button>
+                            <button
+                              className="help-trigger"
+                              data-tooltip="El sistema calcula el camino de correlativas más largo hasta recibirte y en base a eso te ordena las materias según la longitud de su camino, de mayor a menor. El número a la izquierda significa cuántos cuatris tenés para aprobarla (sin contar verano), antes de atrasarte en tu tiempo mínimo hasta recibirse."
+                            >
+                              ⓘ
+                            </button>
+                          </div>
                         </div>
+
+                        {calculationResults && (calculationResults.materias_fijas.length > 0 || calculationResults.materias_opcionales.length > 0) ? (
+                          <div className="result-list">
+                            {calculationResults.materias_fijas.map((item, idx) => {
+                              const parsed = parseResultItem(item);
+                              return (
+                                <div
+                                  key={`fija-${idx}`}
+                                  className="result-item"
+                                >
+                                  <span className={`result-badge ${parsed.badgeClass}`}>
+                                    {parsed.displayCorchete}
+                                  </span>
+                                  <span className="result-text">
+                                    {parsed.nombre}
+                                  </span>
+                                  {parsed.isConditional && (
+                                    <span
+                                      className="conditional-info-trigger"
+                                      data-tooltip={parsed.conditionalMessage}
+                                      title={parsed.conditionalMessage}
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      (i)
+                                    </span>
+                                  )}
+                                  <span className="result-code" style={{ marginLeft: "auto", color: "var(--text-muted)", fontSize: "0.875rem" }}>
+                                    ({parsed.id})
+                                  </span>
+                                </div>
+                              );
+                            })}
+
+                            {calculationResults.materias_opcionales.length > 0 && calculationResults.cantidad_a_elegir > 0 && (
+                              <div style={{ marginTop: "12px", marginBottom: "4px" }}>
+                                <p style={{ fontSize: "0.875rem", fontWeight: "600", color: "var(--text-secondary)" }}>
+                                  Más {calculationResults.cantidad_a_elegir} de las siguientes materias, según tu preferencia:
+                                </p>
+                              </div>
+                            )}
+
+                            {calculationResults.materias_opcionales.map((item, idx) => {
+                              const parsed = parseResultItem(item);
+                              return (
+                                <div
+                                  key={`opc-${idx}`}
+                                  className="result-item"
+                                  style={{ borderStyle: "dashed" }}
+                                >
+                                  <span className={`result-badge ${parsed.badgeClass}`}>
+                                    {parsed.displayCorchete}
+                                  </span>
+                                  <span className="result-text">
+                                    {parsed.nombre}
+                                  </span>
+                                  {parsed.isConditional && (
+                                    <span
+                                      className="conditional-info-trigger"
+                                      data-tooltip={parsed.conditionalMessage}
+                                      title={parsed.conditionalMessage}
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      (i)
+                                    </span>
+                                  )}
+                                  <span className="result-code" style={{ marginLeft: "auto", color: "var(--text-muted)", fontSize: "0.875rem" }}>
+                                    ({parsed.id})
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="empty-results">No tenés ninguna materia disponible para cursar actualmente.</div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* 2. All unlocked subjects (puedo cursar) */}
+                    <div style={{ borderTop: !isSimulatingNext ? "1px solid var(--border-color)" : "none", paddingTop: !isSimulatingNext ? "32px" : "0", marginTop: !isSimulatingNext ? "32px" : "0" }}>
+                      <div className="result-card-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
+                        <div>
+                          <span>Todas las materias que podrías cursar:</span>
+                          <p style={{ fontSize: "0.825rem", color: "var(--text-muted)", margin: "4px 0 0 0" }}>
+                            Mientras más bajo el número, más urgente es cursarla.
+                          </p>
+                        </div>
+                        {isSimulatingNext && (
+                          <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                            <button
+                              type="button"
+                              className="btn-next-semester"
+                              onClick={handleNextSemester}
+                              title="Avanzar al siguiente cuatrimestre aprobando las materias seleccionadas"
+                            >
+                              ✓ Confirmar y avanzar cuatrimestre
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-copy-results"
+                              onClick={handleCancelSimulation}
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        )}
                       </div>
 
-                      {calculationResults && (calculationResults.materias_fijas.length > 0 || calculationResults.materias_opcionales.length > 0) ? (
+                      {isSimulatingNext && (
+                        <div className="optional-selection-banner" style={{ margin: "16px 0" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+                            <p style={{ fontSize: "0.875rem", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
+                              💡 Seleccioná las {numSubjects} materias que querés aprobar para avanzar al siguiente cuatri (hacé click sobre cualquier materia):
+                            </p>
+                            <span className="optional-counter-badge" style={{ color: selectedOptionalIds.length === Math.min(numSubjects, allAvailableSubjects.length) ? "var(--status-aprobada-text)" : "var(--status-final-text)" }}>
+                              Seleccionadas: {selectedOptionalIds.length} / {Math.min(numSubjects, allAvailableSubjects.length)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {allAvailableSubjects.length > 0 ? (
                         <div className="result-list">
-                          {calculationResults.materias_fijas.map((item, idx) => {
+                          {allAvailableSubjects.map((item, idx) => {
                             const parsed = parseResultItem(item);
-                            const isSelected = parsed.numericId ? selectedOptionalIds.includes(parsed.numericId) : false;
+                            const isSelected = isSimulatingNext && parsed.numericId ? selectedOptionalIds.includes(parsed.numericId) : false;
                             return (
                               <div
-                                key={`fija-${idx}`}
-                                className={`result-item optional-selectable ${isSelected ? "selected" : ""}`}
-                                onClick={() => toggleNextSemesterSubject(parsed.numericId)}
-                                title="Hacé click para seleccionar o desmarcar esta materia para el siguiente cuatrimestre"
-                                style={{ cursor: "pointer" }}
-                              >
-                                <span className={`result-badge ${isSelected ? "green-dark" : parsed.badgeClass}`}>
-                                  {isSelected ? "✓" : parsed.displayCorchete}
-                                </span>
-                                <span className="result-text" style={{ fontWeight: isSelected ? "700" : "400" }}>
-                                  {parsed.nombre}
-                                </span>
-                                {isSelected && (
-                                  <span className="selected-tag">
-                                    Elegida
-                                  </span>
-                                )}
-                                {parsed.isConditional && (
-                                  <span
-                                    className="conditional-info-trigger"
-                                    data-tooltip={parsed.conditionalMessage}
-                                    title={parsed.conditionalMessage}
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    (i)
-                                  </span>
-                                )}
-                                <span className="result-code" style={{ marginLeft: "auto", color: "var(--text-muted)", fontSize: "0.875rem" }}>
-                                  ({parsed.id})
-                                </span>
-                              </div>
-                            );
-                          })}
-
-                          {calculationResults.materias_opcionales.length > 0 && calculationResults.cantidad_a_elegir > 0 && (
-                            <div style={{ marginTop: "12px", marginBottom: "4px" }}>
-                              <p style={{ fontSize: "0.875rem", fontWeight: "600", color: "var(--text-secondary)" }}>
-                                Más {calculationResults.cantidad_a_elegir} de las siguientes materias, según tu preferencia:
-                              </p>
-                            </div>
-                          )}
-
-                          {calculationResults.materias_opcionales.map((item, idx) => {
-                            const parsed = parseResultItem(item);
-                            const isSelected = parsed.numericId ? selectedOptionalIds.includes(parsed.numericId) : false;
-                            return (
-                              <div
-                                key={`opc-${idx}`}
-                                className={`result-item optional-selectable ${isSelected ? "selected" : ""}`}
-                                onClick={() => toggleNextSemesterSubject(parsed.numericId)}
-                                title="Hacé click para seleccionar o desmarcar esta materia para el siguiente cuatrimestre"
-                                style={{ cursor: "pointer", borderStyle: isSelected ? "solid" : "dashed" }}
+                                key={`avail-${idx}`}
+                                className={`result-item ${isSimulatingNext ? "optional-selectable" : ""} ${isSelected ? "selected" : ""}`}
+                                onClick={() => {
+                                  if (isSimulatingNext) {
+                                    toggleNextSemesterSubject(parsed.numericId);
+                                  }
+                                }}
+                                title={isSimulatingNext ? "Hacé click para seleccionar o desmarcar esta materia para el siguiente cuatrimestre" : undefined}
+                                style={{ cursor: isSimulatingNext ? "pointer" : "default" }}
                               >
                                 <span className={`result-badge ${isSelected ? "green-dark" : parsed.badgeClass}`}>
                                   {isSelected ? "✓" : parsed.displayCorchete}
@@ -1484,71 +1606,24 @@ export default function Page() {
                       ) : (
                         <div className="empty-results">No tenés ninguna materia disponible para cursar actualmente.</div>
                       )}
-                    </div>
 
-                    {/* 2. All unlocked subjects (puedo cursar) */}
-                    <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "32px", marginTop: "32px" }}>
-                      <div className="result-card-heading">
-                        <span>Todas las materias que podrías cursar:</span>
-                      </div>
-                      <p style={{ fontSize: "0.825rem", color: "var(--text-muted)", marginBottom: "12px" }}>
-                        Mientras más bajo el número, más urgente es cursarla.
-                      </p>
-
-                      <div className="optional-selection-banner" style={{ marginBottom: "16px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
-                          <p style={{ fontSize: "0.875rem", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
-                            💡 Seleccioná las {numSubjects} materias que querés aprobar para avanzar al siguiente cuatri (hacé click sobre cualquier materia):
-                          </p>
-                          <span className="optional-counter-badge" style={{ color: selectedOptionalIds.length === Math.min(numSubjects, allAvailableSubjects.length) ? "var(--status-aprobada-text)" : "var(--status-final-text)" }}>
-                            Seleccionadas: {selectedOptionalIds.length} / {numSubjects}
-                          </span>
+                      {isSimulatingNext && allAvailableSubjects.length > 0 && (
+                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "20px" }}>
+                          <button
+                            type="button"
+                            className="btn-copy-results"
+                            onClick={handleCancelSimulation}
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-next-semester"
+                            onClick={handleNextSemester}
+                          >
+                            ✓ Confirmar y avanzar cuatrimestre
+                          </button>
                         </div>
-                      </div>
-
-                      {allAvailableSubjects.length > 0 ? (
-                        <div className="result-list">
-                          {allAvailableSubjects.map((item, idx) => {
-                            const parsed = parseResultItem(item);
-                            const isSelected = parsed.numericId ? selectedOptionalIds.includes(parsed.numericId) : false;
-                            return (
-                              <div
-                                key={`avail-${idx}`}
-                                className={`result-item optional-selectable ${isSelected ? "selected" : ""}`}
-                                onClick={() => toggleNextSemesterSubject(parsed.numericId)}
-                                title="Hacé click para seleccionar o desmarcar esta materia para el siguiente cuatrimestre"
-                                style={{ cursor: "pointer" }}
-                              >
-                                <span className={`result-badge ${isSelected ? "green-dark" : parsed.badgeClass}`}>
-                                  {isSelected ? "✓" : parsed.displayCorchete}
-                                </span>
-                                <span className="result-text" style={{ fontWeight: isSelected ? "700" : "400" }}>
-                                  {parsed.nombre}
-                                </span>
-                                {isSelected && (
-                                  <span className="selected-tag">
-                                    Elegida
-                                  </span>
-                                )}
-                                {parsed.isConditional && (
-                                  <span
-                                    className="conditional-info-trigger"
-                                    data-tooltip={parsed.conditionalMessage}
-                                    title={parsed.conditionalMessage}
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    (i)
-                                  </span>
-                                )}
-                                <span className="result-code" style={{ marginLeft: "auto", color: "var(--text-muted)", fontSize: "0.875rem" }}>
-                                  ({parsed.id})
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <div className="empty-results">No tenés ninguna materia disponible para cursar actualmente.</div>
                       )}
                     </div>
 
@@ -1611,7 +1686,7 @@ export default function Page() {
                   El Estado {overwriteWarningSlotId} ya tiene datos guardados del{" "}
                   <strong>{saveStates[overwriteWarningSlotId]?.dateFormatted}</strong> con{" "}
                   <strong>{saveStates[overwriteWarningSlotId]?.approvedCount} materias aprobadas</strong>.
-                  Si continuás, se reemplazará por tu selección actual.
+                  Si continuás, se va a reemplazar por tu selección actual.
                 </p>
                 <div className="warning-actions">
                   <button
@@ -1658,7 +1733,7 @@ export default function Page() {
                           <div className="slot-date">🕒 {slotData.dateFormatted}</div>
                           {slotData.semester && (
                             <div className="slot-sub-info">
-                              Cuatri: {slotData.semester === 1 ? "Primero" : slotData.semester === 2 ? "Segundo" : "Verano"}
+                              {slotData.semester === 1 ? "Primer cuatri" : slotData.semester === 2 ? "Segundo cuatri" : "Curso de verano"}
                             </div>
                           )}
                         </div>

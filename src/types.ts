@@ -26,3 +26,16 @@ export interface ParsedResultItem {
   conditionalMessage?: string;
 }
 
+export interface SaveState {
+  slotId: number; // 1, 2, or 3
+  timestamp: number;
+  dateFormatted: string;
+  approvedCount: number;
+  totalCount: number;
+  subjectStatuses: Record<number, SubjectStatus>;
+  numSubjects?: number;
+  semester?: number;
+  intermediatePriority?: boolean;
+}
+
+

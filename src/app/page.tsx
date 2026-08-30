@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { SubjectStatus, SubjectData, CalculationResult, ActiveTab, ParsedResultItem, SaveState } from "../types";
 
 import {
@@ -162,6 +162,14 @@ export default function Page() {
   const [isSimulatingNext, setIsSimulatingNext] = useState<boolean>(false);
   const [selectedOptionalIds, setSelectedOptionalIds] = useState<number[]>([]);
 
+  // Collapsed year groups state (persisted in localStorage, off/expanded by default)
+  const [collapsedYears, setCollapsedYears] = useState<Record<string, boolean>>({});
+
+  // Accessibility Colorblind Mode (none, protanopia, deuteranopia)
+  const [colorBlindMode, setColorBlindMode] = useState<"none" | "protanopia" | "deuteranopia">("none");
+  const [showAccessibilityMenu, setShowAccessibilityMenu] = useState<boolean>(false);
+  const accessibilityMenuRef = useRef<HTMLDivElement>(null);
+
   // Active Toast messages
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [quickSelectToastShown, setQuickSelectToastShown] = useState<boolean>(false);
@@ -221,9 +229,72 @@ export default function Page() {
     });
     setSaveStates(loadedSaveStates);
 
+    // Load collapsed years
+    const savedCollapsed = localStorage.getItem("collapsedYears");
+    if (savedCollapsed) {
+      try {
+        setCollapsedYears(JSON.parse(savedCollapsed));
+      } catch (e) {
+        console.error("Error loading collapsedYears", e);
+      }
+    }
+
+    // Load Colorblind Mode
+    const savedCb = localStorage.getItem("colorBlindMode") as "none" | "protanopia" | "deuteranopia" | null;
+    if (savedCb) {
+      setColorBlindMode(savedCb);
+      applyColorBlindMode(savedCb);
+    }
+
     setMounted(true);
   }, []);
 
+  // Close accessibility dropdown on outside click
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (accessibilityMenuRef.current && !accessibilityMenuRef.current.contains(e.target as Node)) {
+        setShowAccessibilityMenu(false);
+      }
+    };
+    if (showAccessibilityMenu) {
+      document.addEventListener("mousedown", handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [showAccessibilityMenu]);
+
+  // Apply colorblind mode class to document body
+  const applyColorBlindMode = (mode: "none" | "protanopia" | "deuteranopia") => {
+    if (typeof document !== "undefined") {
+      const body = document.body;
+      body.classList.remove("colorblind-protanopia", "colorblind-deuteranopia");
+      if (mode === "protanopia") {
+        body.classList.add("colorblind-protanopia");
+      } else if (mode === "deuteranopia") {
+        body.classList.add("colorblind-deuteranopia");
+      }
+    }
+  };
+
+  // Toggle or select Colorblind Mode
+  const handleColorBlindModeChange = (mode: "none" | "protanopia" | "deuteranopia") => {
+    setColorBlindMode(mode);
+    localStorage.setItem("colorBlindMode", mode);
+    applyColorBlindMode(mode);
+    setShowAccessibilityMenu(false);
+    const label = mode === "protanopia" ? "Protanopía" : mode === "deuteranopia" ? "Deuteranopía" : "Estándar";
+    showToast(`Modo de accesibilidad: ${label}`);
+  };
+
+  // Toggle collapsed state for a year group
+  const handleToggleYearCollapse = (groupKey: string) => {
+    setCollapsedYears(prev => {
+      const next = { ...prev, [groupKey]: !prev[groupKey] };
+      localStorage.setItem("collapsedYears", JSON.stringify(next));
+      return next;
+    });
+  };
 
   // Helper to apply classes to document body
   const applyColorMode = (mode: "dark" | "light") => {
@@ -878,6 +949,7 @@ export default function Page() {
       setSelectedOptionalIds([]);
       setIsSimulatingNext(false);
       setHasCalculated(false);
+      setCollapsedYears({});
 
       showToast("Selección reseteada con éxito.");
     }
@@ -1003,6 +1075,79 @@ export default function Page() {
 
       {/* Top action toggles */}
       <div className="top-actions">
+        {/* Accessibility Daltonismo Dropdown */}
+        <div className="accessibility-menu-container" ref={accessibilityMenuRef}>
+          <button
+            type="button"
+            className={`toggle-mode-btn ${colorBlindMode !== "none" ? "active-accessibility" : ""}`}
+            onClick={() => setShowAccessibilityMenu(prev => !prev)}
+            title="Opciones de accesibilidad"
+            aria-label="Opciones de accesibilidad y daltonismo"
+          >
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <circle cx="12" cy="6.5" r="1.5" />
+              <path d="M12 8v5.5" />
+              <path d="M7.5 10.5h9" />
+              <path d="m9.5 18 2.5-4.5 2.5 4.5" />
+            </svg>
+          </button>
+
+          {showAccessibilityMenu && (
+            <div className="accessibility-dropdown glass-card">
+              <div className="accessibility-dropdown-title">
+                Accesibilidad
+              </div>
+              <div className="accessibility-options">
+                <button
+                  type="button"
+                  className={`accessibility-option-btn ${colorBlindMode === "none" ? "active" : ""}`}
+                  onClick={() => handleColorBlindModeChange("none")}
+                >
+                  <span className="option-badge standard">🎨</span>
+                  <div className="option-text">
+                    <strong>Estándar</strong>
+                    <span>Colores habituales</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  className={`accessibility-option-btn ${colorBlindMode === "protanopia" ? "active" : ""}`}
+                  onClick={() => handleColorBlindModeChange("protanopia")}
+                >
+                  <span className="option-badge protanopia">🔵</span>
+                  <div className="option-text">
+                    <strong>Protanopía</strong>
+                    <span>Déficit de tonos rojos</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  className={`accessibility-option-btn ${colorBlindMode === "deuteranopia" ? "active" : ""}`}
+                  onClick={() => handleColorBlindModeChange("deuteranopia")}
+                >
+                  <span className="option-badge deuteranopia">🟡</span>
+                  <div className="option-text">
+                    <strong>Deuteranopía</strong>
+                    <span>Déficit de tonos verdes</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         <button
           className="toggle-mode-btn"
           onClick={handleToggleColorMode}
@@ -1152,14 +1297,34 @@ export default function Page() {
                 {filteredGroups.map(group => {
                   const count = getGroupCompletedCount(group.key);
                   const isAllChecked = isGroupAllApproved(group.key);
+                  const isCollapsed = Boolean(collapsedYears[group.key]);
 
                   return (
-                    <div key={group.key} className="year-section">
-                      <div className="year-title">
-                        <span>{group.name}</span>
-                        <span style={{ fontSize: "0.85rem", fontWeight: "normal", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "10px" }}>
+                    <div key={group.key} className={`year-section ${isCollapsed ? "is-collapsed" : ""}`}>
+                      <div
+                        className="year-title"
+                        onClick={() => handleToggleYearCollapse(group.key)}
+                        style={{ cursor: "pointer", userSelect: "none" }}
+                        title={isCollapsed ? "Desplegar materias de este año" : "Colapsar materias de este año"}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <span
+                            className={`year-chevron ${isCollapsed ? "collapsed" : ""}`}
+                            aria-hidden="true"
+                          >
+                            ▼
+                          </span>
+                          <span>{group.name}</span>
+                        </div>
+                        <span
+                          style={{ fontSize: "0.85rem", fontWeight: "normal", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "10px" }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <span>({count.passed} / {count.total})</span>
-                          <label style={{ display: "inline-flex", alignItems: "center", gap: "4px", margin: 0, cursor: "pointer", fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+                          <label
+                            style={{ display: "inline-flex", alignItems: "center", gap: "4px", margin: 0, cursor: "pointer", fontSize: "0.8rem", color: "var(--text-secondary)" }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <input
                               type="checkbox"
                               checked={isAllChecked}
@@ -1171,106 +1336,108 @@ export default function Page() {
                         </span>
                       </div>
 
-                      <div className="subject-rows-container">
-                        {group.subjects.map(subject => {
-                          const status = subjectStatuses[subject.id] || "No cursada";
+                      {!isCollapsed && (
+                        <div className="subject-rows-container">
+                          {group.subjects.map(subject => {
+                            const status = subjectStatuses[subject.id] || "No cursada";
 
-                          const stateClass = status === "Final (ignorar)" ? "Final-ignorar" :
-                            status === "No la voy a cursar" ? "No-la-voy-a-cursar" : status;
-                          return (
-                            <div key={subject.id} className={`subject-row state-${stateClass}`}>
-                              <div className="subject-info">
-                                ({subject.id}) {subject.nombre}
-                              </div>
+                            const stateClass = status === "Final (ignorar)" ? "Final-ignorar" :
+                              status === "No la voy a cursar" ? "No-la-voy-a-cursar" : status;
+                            return (
+                              <div key={subject.id} className={`subject-row state-${stateClass}`}>
+                                <div className="subject-info">
+                                  ({subject.id}) {subject.nombre}
+                                </div>
 
-                              <div className="subject-actions">
-                                {subject.id === 3680 ? (
-                                  <>
-                                    <button
-                                      type="button"
-                                      className="status-toggle-btn btn-no-cursar"
-                                      onClick={() => handleSubjectStatusChange(subject.id, "No la voy a cursar")}
-                                    >
-                                      Ignorar
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="status-toggle-btn btn-aprobada"
-                                      onClick={() => handleSubjectStatusChange(subject.id, "Aprobada")}
-                                    >
-                                      Aprobada
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="status-toggle-btn btn-no-cursada"
-                                      onClick={() => handleSubjectStatusChange(subject.id, "No cursada")}
-                                    >
-                                      No cursada
-                                    </button>
-                                  </>
-                                ) : subject.id === 3671 ? (
-                                  <>
-                                    <button
-                                      type="button"
-                                      className="status-toggle-btn btn-aprobada"
-                                      onClick={() => handleSubjectStatusChange(subject.id, "Aprobada")}
-                                    >
-                                      Aprobada
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="status-toggle-btn btn-final"
-                                      onClick={() => handleSubjectStatusChange(subject.id, "Final")}
-                                    >
-                                      En curso
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="status-toggle-btn btn-no-cursada"
-                                      onClick={() => handleSubjectStatusChange(subject.id, "No cursada")}
-                                    >
-                                      No cursada
-                                    </button>
-                                  </>
-                                ) : (
-                                  <>
-                                    <button
-                                      type="button"
-                                      className="status-toggle-btn btn-aprobada"
-                                      onClick={() => handleSubjectStatusChange(subject.id, "Aprobada")}
-                                    >
-                                      Aprobada
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="status-toggle-btn btn-final"
-                                      onClick={() => handleSubjectStatusChange(subject.id, "Final")}
-                                      title="Te va a recomendar las correlativas. No las vas a poder promocionar salvo que metas el final"
-                                    >
-                                      Final
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="status-toggle-btn btn-final-ignorar"
-                                      onClick={() => handleSubjectStatusChange(subject.id, "Final (ignorar)")}
-                                      title="No te va a recomendar las correlativas"
-                                    >
-                                      Final (ignorar)
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="status-toggle-btn btn-no-cursada"
-                                      onClick={() => handleSubjectStatusChange(subject.id, "No cursada")}
-                                    >
-                                      No cursada
-                                    </button>
-                                  </>
-                                )}
+                                <div className="subject-actions">
+                                  {subject.id === 3680 ? (
+                                    <>
+                                      <button
+                                        type="button"
+                                        className="status-toggle-btn btn-no-cursar"
+                                        onClick={() => handleSubjectStatusChange(subject.id, "No la voy a cursar")}
+                                      >
+                                        Ignorar
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="status-toggle-btn btn-aprobada"
+                                        onClick={() => handleSubjectStatusChange(subject.id, "Aprobada")}
+                                      >
+                                        Aprobada
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="status-toggle-btn btn-no-cursada"
+                                        onClick={() => handleSubjectStatusChange(subject.id, "No cursada")}
+                                      >
+                                        No cursada
+                                      </button>
+                                    </>
+                                  ) : subject.id === 3671 ? (
+                                    <>
+                                      <button
+                                        type="button"
+                                        className="status-toggle-btn btn-aprobada"
+                                        onClick={() => handleSubjectStatusChange(subject.id, "Aprobada")}
+                                      >
+                                        Aprobada
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="status-toggle-btn btn-final"
+                                        onClick={() => handleSubjectStatusChange(subject.id, "Final")}
+                                      >
+                                        En curso
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="status-toggle-btn btn-no-cursada"
+                                        onClick={() => handleSubjectStatusChange(subject.id, "No cursada")}
+                                      >
+                                        No cursada
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <button
+                                        type="button"
+                                        className="status-toggle-btn btn-aprobada"
+                                        onClick={() => handleSubjectStatusChange(subject.id, "Aprobada")}
+                                      >
+                                        Aprobada
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="status-toggle-btn btn-final"
+                                        onClick={() => handleSubjectStatusChange(subject.id, "Final")}
+                                        title="Te va a recomendar las correlativas. No las vas a poder promocionar salvo que metas el final"
+                                      >
+                                        Final
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="status-toggle-btn btn-final-ignorar"
+                                        onClick={() => handleSubjectStatusChange(subject.id, "Final (ignorar)")}
+                                        title="No te va a recomendar las correlativas"
+                                      >
+                                        Final (ignorar)
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="status-toggle-btn btn-no-cursada"
+                                        onClick={() => handleSubjectStatusChange(subject.id, "No cursada")}
+                                      >
+                                        No cursada
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -1369,14 +1536,6 @@ export default function Page() {
                   <div className="action-buttons-row">
                     <button
                       type="button"
-                      className="main-btn btn-calculate"
-                      onClick={() => handleCalculate()}
-                    >
-                      Calcular recomendación
-                    </button>
-
-                    <button
-                      type="button"
                       className="main-btn btn-save-state"
                       onClick={() => setSaveStatesModalMode("save")}
                     >
@@ -1389,6 +1548,14 @@ export default function Page() {
                       onClick={() => setSaveStatesModalMode("load")}
                     >
                       📂 Cargar estado
+                    </button>
+
+                    <button
+                      type="button"
+                      className="main-btn btn-calculate"
+                      onClick={() => handleCalculate()}
+                    >
+                      Calcular recomendación
                     </button>
 
                     <button
@@ -1806,7 +1973,7 @@ export default function Page() {
             className="footer-link-btn"
           >
             <img src="./assets/email-logo.svg" alt="Email" />
-            Enviame un email
+            Email
           </a>
         </div>
       </footer>

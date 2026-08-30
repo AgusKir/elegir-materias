@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import pageIcon from "../../public/assets/page-icon.webp";
 
@@ -28,10 +29,21 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const goatCounterCode = process.env.NEXT_PUBLIC_GOATCOUNTER_CODE
+
   return (
     <html lang="es" className={`${outfit.variable}`}>
       <body>
         {children}
+        {/* Privacy-friendly analytics via GoatCounter (zero cookies, GDPR compliant) */}
+        {goatCounterCode && (
+          <Script
+            data-goatcounter={`https://${goatCounterCode}.goatcounter.com/count`}
+            async
+            src="//gc.zgo.at/count.js"
+            strategy="afterInteractive"
+          />
+        )}
       </body>
     </html>
   );

@@ -140,18 +140,10 @@ export const SEMESTER_COLUMNS: SemesterColumn[] = [
     subjects: [
       { id: 3668, nombre: "Inteligencia Artificial Aplicada" },
       { id: 3669, nombre: "Innovación y Emprendedorismo" },
-      { id: 3677, nombre: "Electiva I" },
-      { id: 3678, nombre: "Electiva II" }
-    ]
-  },
-  {
-    id: "5-c2",
-    yearName: "5° Año",
-    semesterLabel: "C2",
-    yearNum: 5,
-    subjects: [
       { id: 3670, nombre: "Ciencia de Datos" },
       { id: 3671, nombre: "Proyecto Final de Carrera" },
+      { id: 3677, nombre: "Electiva I" },
+      { id: 3678, nombre: "Electiva II" },
       { id: 3679, nombre: "Electiva III" }
     ]
   }
@@ -200,10 +192,80 @@ export default function SubjectGraphMap({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const nodeRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Drag-to-scroll (panning) state
+  const isDraggingRef = useRef(false);
+  const dragStartRef = useRef({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0, windowScrollY: 0 });
+  const hasDraggedRef = useRef(false);
+  const [isPanning, setIsPanning] = useState(false);
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    const target = e.target as HTMLElement;
+    if (target.closest("button, input, select, textarea")) return;
+    if (!containerRef.current) return;
+
+    isDraggingRef.current = true;
+    hasDraggedRef.current = false;
+    dragStartRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      scrollLeft: containerRef.current.scrollLeft,
+      scrollTop: containerRef.current.scrollTop,
+      windowScrollY: window.scrollY || document.documentElement.scrollTop
+    };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDraggingRef.current || !containerRef.current) return;
+    const dx = e.clientX - dragStartRef.current.x;
+    const dy = e.clientY - dragStartRef.current.y;
+
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+      if (!hasDraggedRef.current) {
+        hasDraggedRef.current = true;
+        setIsPanning(true);
+      }
+      containerRef.current.scrollLeft = dragStartRef.current.scrollLeft - dx;
+      if (containerRef.current.scrollHeight > containerRef.current.clientHeight) {
+        containerRef.current.scrollTop = dragStartRef.current.scrollTop - dy;
+      }
+      window.scrollTo({
+        top: dragStartRef.current.windowScrollY - dy,
+        left: window.scrollX,
+        behavior: "instant" as any
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    isDraggingRef.current = false;
+    setIsPanning(false);
+  };
+
+  const handleMouseLeave = () => {
+    isDraggingRef.current = false;
+    setIsPanning(false);
+  };
 
   const prerequisitesMap = useMemo(() => getPrerequisitesMap(), []);
   const successorsMap = useMemo(() => getSuccessorsMap(), []);
   const namesMap = useMemo(() => getSubjectNamesMap(), []);
+
+  // Scroll into view when opening a modal so user sees the modal centered
+  useEffect(() => {
+    if (selectedSubjectId !== null) {
+      // Use requestAnimationFrame / timeout to allow modal DOM node to mount
+      const timer = setTimeout(() => {
+        if (modalRef.current) {
+          modalRef.current.scrollTop = 0;
+          modalRef.current.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+        }
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedSubjectId]);
 
   // Compute node positions for drawing SVG lines
   const [nodePositions, setNodePositions] = useState<Record<number, { x: number; y: number; width: number; height: number }>>({});
@@ -350,12 +412,14 @@ export default function SubjectGraphMap({
     const recInfo = recommendedMap[selectedSubjectId] || availableMap[selectedSubjectId] || null;
 
     let conditionalText = "";
-    if (recInfo && recInfo.isConditional && recInfo.conditionalMessage) {
-      conditionalText = recInfo.conditionalMessage;
-    } else if ((semester === 2 || semester === 3) && PREVIOUS_SUBJECTS_3671.includes(selectedSubjectId)) {
-      conditionalText = "Esta materia podrías cursarla el primer cuatri junto al proyecto final si te anotás en cursada condicional. Para más información, contactate con el coordinador de la carrera.";
-    } else if (semester === 1 && selectedSubjectId === 3671 && recInfo && recInfo.isConditional) {
-      conditionalText = "Podrías cursarla si te anotás en cursada condicional y este mismo cuatri rendís las correlativas que te faltan. Para más información, contactate con el coordinador de la carrera.";
+    if (status === "No cursada") {
+      if (recInfo && recInfo.isConditional && recInfo.conditionalMessage) {
+        conditionalText = recInfo.conditionalMessage;
+      } else if ((semester === 2 || semester === 3) && PREVIOUS_SUBJECTS_3671.includes(selectedSubjectId)) {
+        conditionalText = "Esta materia podrías cursarla el primer cuatri junto al proyecto final si te anotás en cursada condicional. Para más información, contactate con el coordinador de la carrera.";
+      } else if (semester === 1 && selectedSubjectId === 3671 && recInfo && recInfo.isConditional) {
+        conditionalText = "Podrías cursarla si te anotás en cursada condicional y este mismo cuatri rendís las correlativas que te faltan. Para más información, contactate con el coordinador de la carrera.";
+      }
     }
 
     return {
@@ -433,7 +497,10 @@ export default function SubjectGraphMap({
         className={`plane-node ${statusFillClass} ${pastelSoftClass} ${relationClass} ${isSelected ? "node-selected" : ""} ${isSearchMatch ? "node-search-highlight" : ""}`}
         onMouseEnter={() => setHoveredSubjectId(subject.id)}
         onMouseLeave={() => setHoveredSubjectId(null)}
-        onClick={() => setSelectedSubjectId(subject.id)}
+        onClick={() => {
+          if (hasDraggedRef.current) return;
+          setSelectedSubjectId(subject.id);
+        }}
       >
         <div className="plane-node-content">
           <div className="plane-node-header">
@@ -455,9 +522,6 @@ export default function SubjectGraphMap({
             </div>
           </div>
           <div className="plane-node-title">{subject.nombre}</div>
-          <div className="plane-node-status-label">
-            {status === "Final" ? (subject.id === 3671 ? "En curso" : "Final") : status === "No la voy a cursar" ? "Ignorada" : status}
-          </div>
         </div>
       </div>
     );
@@ -519,24 +583,24 @@ export default function SubjectGraphMap({
       {/* Legend Card */}
       <div className="glass-card graph-legend">
         <div className="legend-section">
-          <span className="legend-title">Estados de Materia (Sólido):</span>
+          <span className="legend-title">Materias hechas:</span>
           <div className="legend-items">
             <span className="legend-chip fill-state-Aprobada">Aprobada</span>
-            <span className="legend-chip fill-state-Final">Final / En curso</span>
+            <span className="legend-chip fill-state-Final">Final</span>
             <span className="legend-chip fill-state-Final-ignorar">Final (ignorar)</span>
-            <span className="legend-chip fill-state-No-la-voy-a-cursar">Ignorada / No cursar</span>
+            <span className="legend-chip fill-state-No-la-voy-a-cursar">Ignorada</span>
             <span className="legend-chip fill-state-No-cursada">No cursada</span>
           </div>
         </div>
 
         <div className="legend-section">
-          <span className="legend-title">Recomendadas (Pastel suave de fondo):</span>
+          <span className="legend-title">Recomendadas:</span>
           <div className="legend-items">
             <span className="legend-chip pastel-critical-soft">[1] Crítica</span>
             <span className="legend-chip pastel-orange-soft">[2] Alta</span>
             <span className="legend-chip pastel-yellow-soft">[3] Media</span>
             <span className="legend-chip pastel-green-light-soft">[4-5] Baja</span>
-            <span className="legend-chip pastel-info-soft">[(i)] Condicional</span>
+            <span className="legend-chip pastel-blue-soft">[6+] Mínima</span>
           </div>
         </div>
       </div>
@@ -544,8 +608,12 @@ export default function SubjectGraphMap({
       {/* Main Plane Layout with SVG lines */}
       <div
         ref={containerRef}
-        className="graph-plane-scroll-container"
+        className={`graph-plane-scroll-container ${isPanning ? "is-panning" : ""}`}
         onScroll={updatePositions}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
       >
         <div
           className="graph-plane-surface"
@@ -623,7 +691,7 @@ export default function SubjectGraphMap({
       {/* Subject Details Modal */}
       {selectedSubjectData && (
         <div className="graph-modal-backdrop" onClick={() => setSelectedSubjectId(null)}>
-          <div className="glass-card graph-detail-modal" onClick={(e) => e.stopPropagation()}>
+          <div ref={modalRef} className="glass-card graph-detail-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div>
                 <span className="modal-code">({selectedSubjectData.id})</span>
@@ -643,7 +711,7 @@ export default function SubjectGraphMap({
               <div className="conditional-alert-box">
                 <span className="alert-icon">ℹ️</span>
                 <div className="alert-text">
-                  <strong>Aviso de Cursada Condicional:</strong>
+                  <strong>Importante:</strong>
                   <p>{selectedSubjectData.conditionalText}</p>
                 </div>
               </div>

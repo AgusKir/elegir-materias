@@ -203,6 +203,12 @@ body {
   padding: 0;
 }
 
+.toggle-mode-btn.active-accessibility {
+  border-color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+}
+
 .toggle-mode-btn:hover {
   background: var(--bg-card-hover);
   transform: scale(1.05);
@@ -212,6 +218,91 @@ body {
 .toggle-mode-btn img {
   width: 22px;
   height: 22px;
+}
+
+/* Accessibility Dropdown Menu */
+.accessibility-menu-container {
+  position: relative;
+}
+
+.accessibility-dropdown {
+  position: absolute;
+  top: 52px;
+  right: 0;
+  width: 280px;
+  z-index: 1000;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeIn 0.15s ease-out;
+  box-shadow: var(--shadow-lg);
+}
+
+.accessibility-dropdown-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.accessibility-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.accessibility-option-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: var(--transition-smooth);
+  font-family: var(--font-sans);
+}
+
+.light-mode .accessibility-option-btn {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.accessibility-option-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-color);
+}
+
+.accessibility-option-btn.active {
+  background: rgba(37, 99, 235, 0.15);
+  border-color: var(--btn-primary-bg);
+}
+
+.option-badge {
+  font-size: 1.1rem;
+}
+
+.option-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.option-text strong {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.option-text span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
 /* Header design */
@@ -425,6 +516,10 @@ body {
   padding-bottom: 12px;
 }
 
+.year-section.is-collapsed {
+  padding-bottom: 4px;
+}
+
 .year-title {
   font-size: 1.1rem;
   font-weight: 700;
@@ -433,6 +528,30 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: var(--transition-smooth);
+}
+
+.year-title:hover {
+  color: var(--text-primary);
+}
+
+.year-section.is-collapsed .year-title {
+  margin-bottom: 0;
+}
+
+.year-chevron {
+  display: inline-block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
+}
+
+.year-chevron.collapsed {
+  transform: rotate(-90deg);
+}
+
+.year-title:hover .year-chevron {
+  color: var(--text-primary);
 }
 
 .subject-rows-container {
@@ -752,14 +871,14 @@ body {
 /* Action button row */
 .action-buttons-row {
   display: grid;
-  grid-template-columns: 1.3fr 0.7fr;
+  grid-template-columns: 1.12fr 0.88fr;
   gap: 12px;
   margin-top: 8px;
 }
 
 .main-btn {
-  padding: 12px 24px;
-  font-size: 0.95rem;
+  padding: 12px 14px;
+  font-size: 0.92rem;
   font-weight: 700;
   border: none;
   border-radius: var(--radius-sm);
@@ -770,6 +889,7 @@ body {
   justify-content: center;
   gap: 8px;
   font-family: var(--font-sans);
+  text-align: center;
 }
 
 .main-btn.btn-calculate {
@@ -2029,6 +2149,13 @@ body {
   box-shadow: var(--shadow-md);
   position: relative;
   min-height: 720px;
+  cursor: grab;
+  user-select: none;
+}
+
+.graph-plane-scroll-container.is-panning {
+  cursor: grabbing;
+  user-select: none;
 }
 
 .graph-plane-surface {
@@ -2105,7 +2232,7 @@ body {
 .plane-column-nodes {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 /* ==========================================================================
@@ -2113,11 +2240,11 @@ body {
    ========================================================================== */
 .plane-node {
   border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  min-height: 84px;
+  padding: 6px 10px;
+  min-height: 56px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -2135,8 +2262,9 @@ body {
 .plane-node-content {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   height: 100%;
+  justify-content: center;
 }
 
 .plane-node-header {
@@ -2147,7 +2275,7 @@ body {
 }
 
 .plane-node-code {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   opacity: 0.85;
 }
@@ -2159,10 +2287,10 @@ body {
 }
 
 .plane-node-title {
-  font-size: 0.825rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  line-height: 1.25;
-  margin: 2px 0;
+  line-height: 1.2;
+  margin: 1px 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -2331,6 +2459,238 @@ body {
   background: rgba(234, 179, 8, 0.18) !important;
   color: #fef08a !important;
   border: 1.5px solid rgba(234, 179, 8, 0.45) !important;
+}
+
+/* ==========================================================================
+   Accessibility Colorblind Palettes (Protanopia & Deuteranopia)
+   ========================================================================== */
+/* Protanopia (Red-weak): Sky Blue for passed, Gold for final, Magenta for ignore, distinct Yellow vs Sky Blue for Alta vs Media */
+.colorblind-protanopia {
+  --status-aprobada-bg: rgba(2, 132, 199, 0.16);
+  --status-aprobada-border: rgba(2, 132, 199, 0.55);
+  --status-aprobada-text: #38bdf8;
+  --status-aprobada-btn: #0284c7;
+
+  --status-final-bg: rgba(234, 179, 8, 0.16);
+  --status-final-border: rgba(234, 179, 8, 0.55);
+  --status-final-text: #facc15;
+  --status-final-btn: #ca8a04;
+
+  --status-final-ignorar-bg: rgba(192, 38, 211, 0.16);
+  --status-final-ignorar-border: rgba(192, 38, 211, 0.55);
+  --status-final-ignorar-text: #f0abfc;
+  --status-final-ignorar-btn: #c026d3;
+}
+
+.colorblind-protanopia .fill-state-Aprobada {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border-color: #38bdf8 !important;
+}
+
+.colorblind-protanopia .fill-state-Final {
+  background: #ca8a04 !important;
+  color: #000000 !important;
+  border-color: #facc15 !important;
+}
+
+.colorblind-protanopia .fill-state-Final-ignorar {
+  background: #c026d3 !important;
+  color: #ffffff !important;
+  border-color: #f0abfc !important;
+}
+
+.colorblind-protanopia .fill-state-No-la-voy-a-cursar {
+  background: #1e293b !important;
+  color: #94a3b8 !important;
+  border: 1px dashed rgba(148, 163, 184, 0.6) !important;
+}
+
+/* Protanopia Recommendations: [1] Crítica (Golden Yellow), [2] Alta (Vivid Magenta), [3] Media (Royal Blue), [4-5] Baja (Sky Blue), [6+] Mínima (Slate) */
+.colorblind-protanopia .pastel-critical-soft {
+  background: rgba(234, 179, 8, 0.28) !important;
+  color: #fde047 !important;
+  border: 1.5px solid #eab308 !important;
+}
+
+.colorblind-protanopia .pastel-orange-soft {
+  background: rgba(192, 38, 211, 0.25) !important;
+  color: #f0abfc !important;
+  border: 1.5px solid #c026d3 !important;
+}
+
+.colorblind-protanopia .pastel-yellow-soft {
+  background: rgba(37, 99, 235, 0.22) !important;
+  color: #93c5fd !important;
+  border: 1.5px solid #2563eb !important;
+}
+
+.colorblind-protanopia .pastel-green-light-soft,
+.colorblind-protanopia .pastel-green-dark-soft {
+  background: rgba(14, 165, 233, 0.25) !important;
+  color: #38bdf8 !important;
+  border: 1.5px solid #0ea5e9 !important;
+}
+
+.colorblind-protanopia .pastel-blue-soft {
+  background: rgba(100, 116, 139, 0.2) !important;
+  color: #cbd5e1 !important;
+  border: 1.5px solid #64748b !important;
+}
+
+/* Protanopia Badge & Number Overrides */
+.colorblind-protanopia .pastel-badge-critical,
+.colorblind-protanopia .result-badge.critical {
+  background: #eab308 !important;
+  color: #000000 !important;
+  border-color: #facc15 !important;
+}
+
+.colorblind-protanopia .pastel-badge-orange,
+.colorblind-protanopia .result-badge.orange {
+  background: #c026d3 !important;
+  color: #ffffff !important;
+  border-color: #f0abfc !important;
+}
+
+.colorblind-protanopia .pastel-badge-yellow,
+.colorblind-protanopia .result-badge.yellow {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #93c5fd !important;
+}
+
+.colorblind-protanopia .pastel-badge-green-light,
+.colorblind-protanopia .pastel-badge-green-dark,
+.colorblind-protanopia .result-badge.green-light,
+.colorblind-protanopia .result-badge.green-dark {
+  background: #0ea5e9 !important;
+  color: #ffffff !important;
+  border-color: #38bdf8 !important;
+}
+
+.colorblind-protanopia .pastel-badge-blue,
+.colorblind-protanopia .result-badge.blue {
+  background: #64748b !important;
+  color: #ffffff !important;
+  border-color: #94a3b8 !important;
+}
+
+/* Deuteranopia (Green-weak): High-contrast palette preventing confusion between Aprobada (Sky Blue), Final (Yellow), Final ignorar (Magenta) and Ignorada (Dashed Charcoal) */
+.colorblind-deuteranopia {
+  --status-aprobada-bg: rgba(2, 132, 199, 0.16);
+  --status-aprobada-border: rgba(2, 132, 199, 0.55);
+  --status-aprobada-text: #38bdf8;
+  --status-aprobada-btn: #0284c7;
+
+  --status-final-bg: rgba(234, 179, 8, 0.16);
+  --status-final-border: rgba(234, 179, 8, 0.55);
+  --status-final-text: #facc15;
+  --status-final-btn: #ca8a04;
+
+  --status-final-ignorar-bg: rgba(219, 39, 119, 0.16);
+  --status-final-ignorar-border: rgba(219, 39, 119, 0.55);
+  --status-final-ignorar-text: #f472b6;
+  --status-final-ignorar-btn: #db2777;
+
+  --status-no-cursar-bg: rgba(15, 23, 42, 0.6);
+  --status-no-cursar-border: rgba(148, 163, 184, 0.4);
+  --status-no-cursar-text: #94a3b8;
+  --status-no-cursar-btn: #475569;
+}
+
+.colorblind-deuteranopia .fill-state-Aprobada {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border-color: #38bdf8 !important;
+}
+
+.colorblind-deuteranopia .fill-state-Final {
+  background: #ca8a04 !important;
+  color: #000000 !important;
+  border-color: #facc15 !important;
+}
+
+.colorblind-deuteranopia .fill-state-Final-ignorar {
+  background: #db2777 !important;
+  color: #ffffff !important;
+  border-color: #f472b6 !important;
+}
+
+.colorblind-deuteranopia .fill-state-No-la-voy-a-cursar {
+  background: #1e293b !important;
+  color: #94a3b8 !important;
+  border: 1px dashed rgba(148, 163, 184, 0.6) !important;
+}
+
+/* Deuteranopia Recommendations: [1] Crítica (Golden Yellow), [2] Alta (Royal Blue), [3] Media (Cyan/Teal), [4-5] Baja (Vivid Magenta), [6+] Mínima (Slate) */
+.colorblind-deuteranopia .pastel-critical-soft {
+  background: rgba(234, 179, 8, 0.28) !important;
+  color: #fde047 !important;
+  border: 1.5px solid #eab308 !important;
+}
+
+.colorblind-deuteranopia .pastel-orange-soft {
+  background: rgba(37, 99, 235, 0.22) !important;
+  color: #93c5fd !important;
+  border: 1.5px solid #2563eb !important;
+}
+
+.colorblind-deuteranopia .pastel-yellow-soft {
+  background: rgba(6, 182, 212, 0.25) !important;
+  color: #22d3ee !important;
+  border: 1.5px solid #06b6d4 !important;
+}
+
+.colorblind-deuteranopia .pastel-green-light-soft,
+.colorblind-deuteranopia .pastel-green-dark-soft {
+  background: rgba(219, 39, 119, 0.25) !important;
+  color: #f472b6 !important;
+  border: 1.5px solid #db2777 !important;
+}
+
+.colorblind-deuteranopia .pastel-blue-soft {
+  background: rgba(100, 116, 139, 0.2) !important;
+  color: #cbd5e1 !important;
+  border: 1.5px solid #64748b !important;
+}
+
+/* Deuteranopia Badge & Number Overrides */
+.colorblind-deuteranopia .pastel-badge-critical,
+.colorblind-deuteranopia .result-badge.critical {
+  background: #eab308 !important;
+  color: #000000 !important;
+  border-color: #facc15 !important;
+}
+
+.colorblind-deuteranopia .pastel-badge-orange,
+.colorblind-deuteranopia .result-badge.orange {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #93c5fd !important;
+}
+
+.colorblind-deuteranopia .pastel-badge-yellow,
+.colorblind-deuteranopia .result-badge.yellow {
+  background: #06b6d4 !important;
+  color: #ffffff !important;
+  border-color: #22d3ee !important;
+}
+
+.colorblind-deuteranopia .pastel-badge-green-light,
+.colorblind-deuteranopia .pastel-badge-green-dark,
+.colorblind-deuteranopia .result-badge.green-light,
+.colorblind-deuteranopia .result-badge.green-dark {
+  background: #db2777 !important;
+  color: #ffffff !important;
+  border-color: #f472b6 !important;
+}
+
+.colorblind-deuteranopia .pastel-badge-blue,
+.colorblind-deuteranopia .result-badge.blue {
+  background: #64748b !important;
+  color: #ffffff !important;
+  border-color: #94a3b8 !important;
 }
 
 /* ==========================================================================

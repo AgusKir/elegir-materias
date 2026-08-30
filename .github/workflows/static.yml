@@ -40,6 +40,8 @@ jobs:
         run: npm ci
       - name: Build Next.js
         run: npm run build
+        env:
+          NEXT_PUBLIC_GOATCOUNTER_CODE: ${{ secrets.NEXT_PUBLIC_GOATCOUNTER_CODE || vars.NEXT_PUBLIC_GOATCOUNTER_CODE || 'aguskiry' }}
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

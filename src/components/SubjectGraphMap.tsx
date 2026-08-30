@@ -24,11 +24,11 @@ export const SEMESTER_COLUMNS: SemesterColumn[] = [
     semesterLabel: "C1",
     yearNum: 1,
     subjects: [
-      { id: 3622, nombre: "Análisis Matemático I" },
       { id: 3621, nombre: "Matemática Discreta" },
-      { id: 3625, nombre: "Sistemas de Numeración" },
+      { id: 3622, nombre: "Análisis Matemático I" },
       { id: 3623, nombre: "Programación Inicial" },
       { id: 3624, nombre: "Introducción a los Sistemas de Información" },
+      { id: 3625, nombre: "Sistemas de Numeración" },
       { id: 3626, nombre: "Principios de Calidad de Software" }
     ]
   },
@@ -40,10 +40,10 @@ export const SEMESTER_COLUMNS: SemesterColumn[] = [
     subjects: [
       { id: 3627, nombre: "Álgebra y Geometría Analítica I" },
       { id: 3628, nombre: "Física I" },
-      { id: 3632, nombre: "Introducción a los Proyectos Informáticos" },
-      { id: 3631, nombre: "Fundamentos de Sistemas Embebidos" },
       { id: 3629, nombre: "Programación Estructurada Básica" },
-      { id: 3630, nombre: "Introducción a la Gestión de Requisitos" }
+      { id: 3630, nombre: "Introducción a la Gestión de Requisitos" },
+      { id: 3631, nombre: "Fundamentos de Sistemas Embebidos" },
+      { id: 3632, nombre: "Introducción a Proyectos Informáticos" }
     ]
   },
   {
@@ -53,11 +53,11 @@ export const SEMESTER_COLUMNS: SemesterColumn[] = [
     yearNum: 2,
     subjects: [
       { id: 3633, nombre: "Análisis Matemático II" },
-      { id: 3635, nombre: "Tópicos de Programación" },
       { id: 3634, nombre: "Física II" },
-      { id: 3638, nombre: "Arquitectura de Computadoras" },
+      { id: 3635, nombre: "Tópicos de Programación" },
       { id: 3636, nombre: "Bases de Datos" },
       { id: 3637, nombre: "Análisis de Sistemas" },
+      { id: 3638, nombre: "Arquitectura de Computadoras" },
       { id: 3676, nombre: "Responsabilidad Social Universitaria" }
     ]
   },
@@ -67,12 +67,12 @@ export const SEMESTER_COLUMNS: SemesterColumn[] = [
     semesterLabel: "C2",
     yearNum: 2,
     subjects: [
-      { id: 3641, nombre: "Bases de Datos Aplicadas" },
       { id: 3639, nombre: "Análisis Matemático III" },
-      { id: 3644, nombre: "Gestión de las Organizaciones" },
-      { id: 3643, nombre: "Redes de Computadoras" },
       { id: 3640, nombre: "Algoritmos y Estructuras de Datos" },
+      { id: 3641, nombre: "Bases de Datos Aplicada" },
       { id: 3642, nombre: "Principios de Diseño de Sistemas" },
+      { id: 3643, nombre: "Redes de Computadoras" },
+      { id: 3644, nombre: "Gestión de las Organizaciones" },
       { id: 3680, nombre: "Taller de Integración" }
     ]
   },
@@ -84,10 +84,10 @@ export const SEMESTER_COLUMNS: SemesterColumn[] = [
     subjects: [
       { id: 3645, nombre: "Álgebra y Geometría Analítica II" },
       { id: 3646, nombre: "Paradigmas de Programación" },
-      { id: 3650, nombre: "Seguridad de la Información" },
+      { id: 3647, nombre: "Requisitos Avanzados" },
       { id: 3648, nombre: "Diseño de Software" },
       { id: 3649, nombre: "Sistemas Operativos" },
-      { id: 3647, nombre: "Requisitos Avanzados" },
+      { id: 3650, nombre: "Seguridad de la Información" },
       { id: 3675, nombre: "Práctica Profesional Supervisada" }
     ]
   },
@@ -97,11 +97,11 @@ export const SEMESTER_COLUMNS: SemesterColumn[] = [
     semesterLabel: "C2",
     yearNum: 3,
     subjects: [
-      { id: 3652, nombre: "Programación Avanzada" },
       { id: 3651, nombre: "Probabilidad y Estadística" },
-      { id: 3653, nombre: "Arquitectura de Sistemas Software" },
-      { id: 3655, nombre: "Auditoría y Legislación" },
-      { id: 3654, nombre: "Virtualización de Hardware" }
+      { id: 3652, nombre: "Programación Avanzada" },
+      { id: 3653, nombre: "Arquitecturas de Sistemas Software" },
+      { id: 3654, nombre: "Virtualización de Hardware" },
+      { id: 3655, nombre: "Auditoría y Legislación" }
     ]
   },
   {
@@ -110,12 +110,12 @@ export const SEMESTER_COLUMNS: SemesterColumn[] = [
     semesterLabel: "C1",
     yearNum: 4,
     subjects: [
-      { id: 3661, nombre: "Gestión de Proyectos" },
-      { id: 3657, nombre: "Autómatas y Gramáticas" },
       { id: 3656, nombre: "Estadística Aplicada" },
-      { id: 3660, nombre: "Sistemas Operativos Avanzados" },
+      { id: 3657, nombre: "Autómatas y Gramática" },
+      { id: 3658, nombre: "Programación Concurrente" },
       { id: 3659, nombre: "Gestión Aplicada al Desarrollo de Software I" },
-      { id: 3658, nombre: "Programación Concurrente" }
+      { id: 3660, nombre: "Sistemas Operativos Avanzados" },
+      { id: 3661, nombre: "Gestión de Proyectos" }
     ]
   },
   {
@@ -124,12 +124,12 @@ export const SEMESTER_COLUMNS: SemesterColumn[] = [
     semesterLabel: "C2",
     yearNum: 4,
     subjects: [
-      { id: 3664, nombre: "Inteligencia Artificial" },
-      { id: 3667, nombre: "Gestión de la Calidad en Procesos de Sistemas" },
-      { id: 3663, nombre: "Lenguajes y Compiladores" },
-      { id: 3666, nombre: "Seguridad Aplicada y Forensia" },
       { id: 3662, nombre: "Matemática Aplicada" },
-      { id: 3665, nombre: "Gestión Aplicada al Desarrollo de Software II" }
+      { id: 3663, nombre: "Lenguajes y Compiladores" },
+      { id: 3664, nombre: "Inteligencia Artificial" },
+      { id: 3665, nombre: "Gestión Aplicada al Desarrollo de Software II" },
+      { id: 3666, nombre: "Seguridad Aplicada y Forensia" },
+      { id: 3667, nombre: "Gestión de la Calidad en Procesos de Sistemas" }
     ]
   },
   {
@@ -141,7 +141,15 @@ export const SEMESTER_COLUMNS: SemesterColumn[] = [
       { id: 3668, nombre: "Inteligencia Artificial Aplicada" },
       { id: 3669, nombre: "Innovación y Emprendedorismo" },
       { id: 3670, nombre: "Ciencia de Datos" },
-      { id: 3671, nombre: "Proyecto Final de Carrera" },
+      { id: 3671, nombre: "Proyecto Final de Carrera" }
+    ]
+  },
+  {
+    id: "5-c2",
+    yearName: "5° Año",
+    semesterLabel: "C2",
+    yearNum: 5,
+    subjects: [
       { id: 3677, nombre: "Electiva I" },
       { id: 3678, nombre: "Electiva II" },
       { id: 3679, nombre: "Electiva III" }
@@ -539,7 +547,7 @@ export default function SubjectGraphMap({
             <input
               type="text"
               className="search-input"
-              placeholder="Buscar materia en el plano..."
+              placeholder="Buscar materia..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />

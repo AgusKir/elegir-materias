@@ -31,7 +31,7 @@ const SUBJECT_GROUPS = [
       { id: 3629, nombre: "Programación Estructurada Básica" },
       { id: 3630, nombre: "Introducción a la Gestión de Requisitos" },
       { id: 3631, nombre: "Fundamentos de Sistemas Embebidos" },
-      { id: 3632, nombre: "Introducción a los Proyectos Informáticos" }
+      { id: 3632, nombre: "Introducción a Proyectos Informáticos" }
     ]
   },
   {
@@ -49,7 +49,7 @@ const SUBJECT_GROUPS = [
       { id: 3676, nombre: "Responsabilidad Social Universitaria" },
       { id: 3639, nombre: "Análisis Matemático III" },
       { id: 3640, nombre: "Algoritmos y Estructuras de Datos" },
-      { id: 3641, nombre: "Bases de Datos Aplicadas" },
+      { id: 3641, nombre: "Bases de Datos Aplicada" },
       { id: 3642, nombre: "Principios de Diseño de Sistemas" },
       { id: 3643, nombre: "Redes de Computadoras" },
       { id: 3644, nombre: "Gestión de las Organizaciones" },
@@ -70,7 +70,7 @@ const SUBJECT_GROUPS = [
       { id: 3675, nombre: "Práctica Profesional Supervisada" },
       { id: 3651, nombre: "Probabilidad y Estadística" },
       { id: 3652, nombre: "Programación Avanzada" },
-      { id: 3653, nombre: "Arquitectura de Sistemas Software" },
+      { id: 3653, nombre: "Arquitecturas de Sistemas Software" },
       { id: 3654, nombre: "Virtualización de Hardware" },
       { id: 3655, nombre: "Auditoría y Legislación" }
     ]
@@ -81,7 +81,7 @@ const SUBJECT_GROUPS = [
     quickSelectIds: [3656, 3657, 3658, 3659, 3660, 3661, 3662, 3663, 3664, 3665, 3666, 3667],
     subjects: [
       { id: 3656, nombre: "Estadística Aplicada" },
-      { id: 3657, nombre: "Autómatas y Gramáticas" },
+      { id: 3657, nombre: "Autómatas y Gramática" },
       { id: 3658, nombre: "Programación Concurrente" },
       { id: 3659, nombre: "Gestión Aplicada al Desarrollo de Software I" },
       { id: 3660, nombre: "Sistemas Operativos Avanzados" },

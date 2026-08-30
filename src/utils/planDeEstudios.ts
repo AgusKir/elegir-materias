@@ -232,7 +232,7 @@ export class PlanDeEstudios {
 
                   const caminoHasta = this.encontrarCaminoMasSemestresHasta(id_materia);
                   const totalPathSemesters = this.contarSemestresEnCamino(caminoHasta, true) - 1 +
-                                            this.contarSemestresEnCamino(caminoDesde, true);
+                    this.contarSemestresEnCamino(caminoDesde, true);
                   const actualPathWithGap = totalPathSemesters + (before3671IsPrimero ? 1 : 0);
 
                   if (actualPathWithGap === cuatrisMinimosBase - 1) {
@@ -329,7 +329,7 @@ export class PlanDeEstudios {
     for (const id_materia in this.materias) {
       const id = parseInt(id_materia);
       if (datos[id] && datos[id].cuatrimestre === cuatriActual &&
-          this.materias[id].posteriores.has(3671)) {
+        this.materias[id].posteriores.has(3671)) {
         datos[id].cuatrimestre++;
         datos[id].valor_corchete++;
         if (datos[id].valor_corchete_original !== undefined) {
@@ -447,12 +447,12 @@ export class PlanDeEstudios {
       const empate: [number, number, number][] = [];
 
       while (seleccionadas.length > 0 &&
-             seleccionadas[seleccionadas.length - 1][1] === ultimoValor) {
+        seleccionadas[seleccionadas.length - 1][1] === ultimoValor) {
         empate.unshift(seleccionadas.pop()!);
       }
 
       while (i < materiasEnCuatri.length &&
-             materiasEnCuatri[i][1] === ultimoValor) {
+        materiasEnCuatri[i][1] === ultimoValor) {
         empate.push(materiasEnCuatri[i]);
         i++;
       }
@@ -468,7 +468,7 @@ export class PlanDeEstudios {
   procesarResultadosConEmpate(resultado: CalculationResult, seleccionadas: [number, number, number][], empate: [number, number, number][], cantidad: number) {
     if (seleccionadas.length + empate.length <= cantidad) {
       this.agregarMateriasAlResultado(resultado.materias_fijas,
-                                    [...seleccionadas, ...empate]);
+        [...seleccionadas, ...empate]);
     } else {
       this.agregarMateriasAlResultado(resultado.materias_fijas, seleccionadas);
       resultado.cantidad_a_elegir = cantidad - seleccionadas.length;
@@ -593,7 +593,7 @@ export const TABLA_NOMBRES = `
 3629	Programación Estructurada Básica
 3630	Introducción a la Gestión de Requisitos
 3631	Fundamentos de Sistemas Embebidos
-3632	Introducción a los Proyectos Informáticos
+3632	Introducción a Proyectos Informáticos
 3633	Análisis Matemático II
 3634	Física II
 3635	Tópicos de Programación
@@ -603,11 +603,11 @@ export const TABLA_NOMBRES = `
 3676	Responsabilidad Social Universitaria
 3639	Análisis Matemático III
 3640	Algoritmos y Estructuras de Datos
-3641	Bases de Datos Aplicadas
+3641	Bases de Datos Aplicada
 3642	Principios de Diseño de Sistemas
 3643	Redes de Computadoras
 3644	Gestión de las Organizaciones
-3680    Taller de Integración
+3680  Taller de Integración
 3645	Álgebra y Geometría Analítica II
 3646	Paradigmas de Programación
 3647	Requisitos Avanzados
@@ -617,11 +617,11 @@ export const TABLA_NOMBRES = `
 3675	Práctica Profesional Supervisada
 3651	Probabilidad y Estadística
 3652	Programación Avanzada
-3653	Arquitectura de Sistemas Software
+3653	Arquitecturas de Sistemas Software
 3654	Virtualización de Hardware
 3655	Auditoría y Legislación
 3656	Estadística Aplicada
-3657	Autómatas y Gramáticas
+3657	Autómatas y Gramática
 3658	Programación Concurrente
 3659	Gestión Aplicada al Desarrollo de Software I
 3660	Sistemas Operativos Avanzados

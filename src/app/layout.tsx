@@ -37,11 +37,10 @@ export default function RootLayout({
         {children}
         {/* Privacy-friendly analytics via GoatCounter (zero cookies, GDPR compliant) */}
         {goatCounterCode && (
-          <Script
+          <script
             data-goatcounter={`https://${goatCounterCode}.goatcounter.com/count`}
             async
             src="//gc.zgo.at/count.js"
-            strategy="afterInteractive"
           />
         )}
       </body>

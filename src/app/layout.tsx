@@ -40,7 +40,7 @@ export default function RootLayout({
           <script
             data-goatcounter={`https://${goatCounterCode}.goatcounter.com/count`}
             async
-            src="//gc.zgo.at/count.js"
+            src="./assets/metrics.js"
           />
         )}
       </body>

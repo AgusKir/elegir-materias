@@ -215,9 +215,29 @@ body {
   border-color: var(--btn-primary-bg);
 }
 
-.toggle-mode-btn img {
-  width: 22px;
-  height: 22px;
+.toggle-mode-btn img,
+.toggle-mode-btn svg {
+  width: 20px;
+  height: 20px;
+  transition: transform var(--transition-smooth), color var(--transition-smooth);
+}
+
+.toggle-mode-btn .sun-icon {
+  color: #fbbf24; /* Warm sunny amber/gold in dark mode */
+}
+
+.toggle-mode-btn .moon-icon {
+  color: #6366f1; /* Indigo/slate moon tone in light mode */
+}
+
+.toggle-mode-btn:hover .sun-icon {
+  transform: rotate(45deg);
+  color: #f59e0b;
+}
+
+.toggle-mode-btn:hover .moon-icon {
+  transform: rotate(-15deg);
+  color: #4f46e5;
 }
 
 /* Accessibility Dropdown Menu */
@@ -2506,7 +2526,7 @@ body {
   border: 1px dashed rgba(148, 163, 184, 0.6) !important;
 }
 
-/* Protanopia Recommendations: [1] Crítica (Golden Yellow), [2] Alta (Vivid Magenta), [3] Media (Royal Blue), [4-5] Baja (Sky Blue), [6+] Mínima (Slate) */
+/* Protanopia Recommendations (Dark Mode default) */
 .colorblind-protanopia .pastel-critical-soft {
   background: rgba(234, 179, 8, 0.28) !important;
   color: #fde047 !important;
@@ -2535,6 +2555,44 @@ body {
 .colorblind-protanopia .pastel-blue-soft {
   background: rgba(100, 116, 139, 0.2) !important;
   color: #cbd5e1 !important;
+  border: 1.5px solid #64748b !important;
+}
+
+/* Protanopia Recommendations (Light Mode - High Contrast) */
+.light-mode.colorblind-protanopia .pastel-critical-soft,
+.light-mode .colorblind-protanopia .pastel-critical-soft {
+  background: #fef9c3 !important;
+  color: #854d0e !important;
+  border: 1.5px solid #ca8a04 !important;
+}
+
+.light-mode.colorblind-protanopia .pastel-orange-soft,
+.light-mode .colorblind-protanopia .pastel-orange-soft {
+  background: #fae8ff !important;
+  color: #86198f !important;
+  border: 1.5px solid #c026d3 !important;
+}
+
+.light-mode.colorblind-protanopia .pastel-yellow-soft,
+.light-mode .colorblind-protanopia .pastel-yellow-soft {
+  background: #dbeafe !important;
+  color: #1e40af !important;
+  border: 1.5px solid #2563eb !important;
+}
+
+.light-mode.colorblind-protanopia .pastel-green-light-soft,
+.light-mode.colorblind-protanopia .pastel-green-dark-soft,
+.light-mode .colorblind-protanopia .pastel-green-light-soft,
+.light-mode .colorblind-protanopia .pastel-green-dark-soft {
+  background: #e0f2fe !important;
+  color: #0369a1 !important;
+  border: 1.5px solid #0284c7 !important;
+}
+
+.light-mode.colorblind-protanopia .pastel-blue-soft,
+.light-mode .colorblind-protanopia .pastel-blue-soft {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
   border: 1.5px solid #64748b !important;
 }
 
@@ -2599,6 +2657,22 @@ body {
   --status-no-cursar-btn: #475569;
 }
 
+.light-mode.colorblind-deuteranopia,
+.light-mode .colorblind-deuteranopia,
+.colorblind-deuteranopia.light-mode {
+  --status-aprobada-text: #0369a1;
+  --status-final-text: #854d0e;
+  --status-final-ignorar-text: #9d174d;
+}
+
+.light-mode.colorblind-protanopia,
+.light-mode .colorblind-protanopia,
+.colorblind-protanopia.light-mode {
+  --status-aprobada-text: #0369a1;
+  --status-final-text: #854d0e;
+  --status-final-ignorar-text: #86198f;
+}
+
 .colorblind-deuteranopia .fill-state-Aprobada {
   background: #0284c7 !important;
   color: #ffffff !important;
@@ -2623,7 +2697,7 @@ body {
   border: 1px dashed rgba(148, 163, 184, 0.6) !important;
 }
 
-/* Deuteranopia Recommendations: [1] Crítica (Golden Yellow), [2] Alta (Royal Blue), [3] Media (Cyan/Teal), [4-5] Baja (Vivid Magenta), [6+] Mínima (Slate) */
+/* Deuteranopia Recommendations (Dark Mode default) */
 .colorblind-deuteranopia .pastel-critical-soft {
   background: rgba(234, 179, 8, 0.28) !important;
   color: #fde047 !important;
@@ -2652,6 +2726,44 @@ body {
 .colorblind-deuteranopia .pastel-blue-soft {
   background: rgba(100, 116, 139, 0.2) !important;
   color: #cbd5e1 !important;
+  border: 1.5px solid #64748b !important;
+}
+
+/* Deuteranopia Recommendations (Light Mode - High Contrast) */
+.light-mode.colorblind-deuteranopia .pastel-critical-soft,
+.light-mode .colorblind-deuteranopia .pastel-critical-soft {
+  background: #fef9c3 !important;
+  color: #854d0e !important;
+  border: 1.5px solid #ca8a04 !important;
+}
+
+.light-mode.colorblind-deuteranopia .pastel-orange-soft,
+.light-mode .colorblind-deuteranopia .pastel-orange-soft {
+  background: #dbeafe !important;
+  color: #1e40af !important;
+  border: 1.5px solid #2563eb !important;
+}
+
+.light-mode.colorblind-deuteranopia .pastel-yellow-soft,
+.light-mode .colorblind-deuteranopia .pastel-yellow-soft {
+  background: #cffafe !important;
+  color: #0e7490 !important;
+  border: 1.5px solid #0891b2 !important;
+}
+
+.light-mode.colorblind-deuteranopia .pastel-green-light-soft,
+.light-mode.colorblind-deuteranopia .pastel-green-dark-soft,
+.light-mode .colorblind-deuteranopia .pastel-green-light-soft,
+.light-mode .colorblind-deuteranopia .pastel-green-dark-soft {
+  background: #fce7f3 !important;
+  color: #9d174d !important;
+  border: 1.5px solid #db2777 !important;
+}
+
+.light-mode.colorblind-deuteranopia .pastel-blue-soft,
+.light-mode .colorblind-deuteranopia .pastel-blue-soft {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
   border: 1.5px solid #64748b !important;
 }
 

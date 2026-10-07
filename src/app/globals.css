@@ -878,7 +878,19 @@ body {
   margin-top: 4px;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  text-align: right;
   gap: 4px;
+}
+
+.num-subjects-error {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ef4444;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* Intermediate priority explain */

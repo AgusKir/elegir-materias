@@ -33,7 +33,7 @@ export interface SaveState {
   approvedCount: number;
   totalCount: number;
   subjectStatuses: Record<number, SubjectStatus>;
-  numSubjects?: number;
+  numSubjects?: number | null;
   semester?: number;
   intermediatePriority?: boolean;
 }

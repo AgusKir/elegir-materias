@@ -140,7 +140,8 @@ export default function Page() {
 
   // Core configuration states
   const [colorMode, setColorMode] = useState<"dark" | "light">("dark");
-  const [numSubjects, setNumSubjects] = useState<number>(1);
+  const [numSubjects, setNumSubjects] = useState<number | null>(null);
+  const [numSubjectsError, setNumSubjectsError] = useState<boolean>(false);
   const [semester, setSemester] = useState<number>(1);
   const [intermediatePriority, setIntermediatePriority] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -321,6 +322,7 @@ export default function Page() {
   // Sync basic inputs to localStorage
   const handleNumSubjectsChange = (val: number) => {
     setNumSubjects(val);
+    setNumSubjectsError(false);
     localStorage.setItem("numSubjects", String(val));
   };
 
@@ -608,9 +610,14 @@ export default function Page() {
     localStorage.setItem("completedSubjects", JSON.stringify(checkedIds));
 
     let loadedSemester = semester;
-    if (targetState.numSubjects) {
+    if (targetState.numSubjects !== undefined) {
       setNumSubjects(targetState.numSubjects);
-      localStorage.setItem("numSubjects", String(targetState.numSubjects));
+      setNumSubjectsError(false);
+      if (targetState.numSubjects !== null) {
+        localStorage.setItem("numSubjects", String(targetState.numSubjects));
+      } else {
+        localStorage.removeItem("numSubjects");
+      }
     }
     if (targetState.semester) {
       loadedSemester = targetState.semester;
@@ -645,11 +652,12 @@ export default function Page() {
     if (selectedOptionalIds.includes(numericId)) {
       setSelectedOptionalIds(prev => prev.filter(id => id !== numericId));
     } else {
-      if (selectedOptionalIds.length >= numSubjects) {
-        if (numSubjects === 1) {
+      const limit = numSubjects ?? 1;
+      if (selectedOptionalIds.length >= limit) {
+        if (limit === 1) {
           setSelectedOptionalIds([numericId]);
         } else {
-          showToast(`Ya seleccionaste las ${numSubjects} materias a cursar. Podés hacer click sobre una materia previamente seleccionada para desmarcarla.`, 4000);
+          showToast(`Ya seleccionaste las ${limit} materias a cursar. Podés hacer click sobre una materia previamente seleccionada para desmarcarla.`, 4000);
         }
       } else {
         setSelectedOptionalIds(prev => [...prev, numericId]);
@@ -659,6 +667,12 @@ export default function Page() {
 
   // 6. Core calculate action
   const handleCalculate = (overrideStatuses?: Record<number, SubjectStatus>, overrideSemester?: number) => {
+    if (!numSubjects) {
+      setNumSubjectsError(true);
+      showToast("⚠️ Por favor seleccioná a cuántas materias te querés anotar.", 4000);
+      return;
+    }
+
     const activeStatuses = overrideStatuses || subjectStatuses;
     const activeSemester = overrideSemester !== undefined ? overrideSemester : semester;
 
@@ -846,7 +860,7 @@ export default function Page() {
   const handleStartSimulation = () => {
     if (!hasCalculated || allAvailableSubjects.length === 0) return;
 
-    const targetCount = Math.min(numSubjects, allAvailableSubjects.length);
+    const targetCount = Math.min(numSubjects || 0, allAvailableSubjects.length);
     if (selectedOptionalIds.length < targetCount) {
       const preselected: number[] = [];
       const addIfValid = (itemStr: string) => {
@@ -874,7 +888,7 @@ export default function Page() {
   const handleNextSemester = () => {
     if (!hasCalculated || allAvailableSubjects.length === 0) return;
 
-    const targetCount = Math.min(numSubjects, allAvailableSubjects.length);
+    const targetCount = Math.min(numSubjects || 0, allAvailableSubjects.length);
 
     if (selectedOptionalIds.length < targetCount) {
       showToast(`⚠️ Por favor seleccioná ${targetCount} materia(s) de "Todas las materias que podrías cursar" antes de avanzar al siguiente cuatrimestre.`, 6000);
@@ -941,7 +955,8 @@ export default function Page() {
       });
 
       setSubjectStatuses(resetStatuses);
-      setNumSubjects(1);
+      setNumSubjects(null);
+      setNumSubjectsError(false);
       setSemester(1);
       setIntermediatePriority(false);
       setCalculationResults(null);
@@ -1512,7 +1527,12 @@ export default function Page() {
                         </button>
                       ))}
                     </div>
-                    {numSubjects >= 7 && (
+                    {numSubjectsError && (
+                      <div className="num-subjects-error">
+                        <span>⚠️ Seleccioná una cantidad de materias para continuar</span>
+                      </div>
+                    )}
+                    {numSubjects !== null && numSubjects >= 7 && (
                       <div className="lucky-warning">
                         <span>😱 ¡Mucha suerte!</span>
                       </div>
@@ -1754,10 +1774,10 @@ export default function Page() {
                         <div className="optional-selection-banner" style={{ margin: "16px 0" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
                             <p style={{ fontSize: "0.875rem", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
-                              💡 Seleccioná las {numSubjects} materias que querés aprobar para avanzar al siguiente cuatri (hacé click sobre cualquier materia):
+                              💡 Seleccioná las {numSubjects ?? 0} materias que querés aprobar para avanzar al siguiente cuatri (hacé click sobre cualquier materia):
                             </p>
-                            <span className="optional-counter-badge" style={{ color: selectedOptionalIds.length === Math.min(numSubjects, allAvailableSubjects.length) ? "var(--status-aprobada-text)" : "var(--status-final-text)" }}>
-                              Seleccionadas: {selectedOptionalIds.length} / {Math.min(numSubjects, allAvailableSubjects.length)}
+                            <span className="optional-counter-badge" style={{ color: selectedOptionalIds.length === Math.min(numSubjects ?? 0, allAvailableSubjects.length) ? "var(--status-aprobada-text)" : "var(--status-final-text)" }}>
+                              Seleccionadas: {selectedOptionalIds.length} / {Math.min(numSubjects ?? 0, allAvailableSubjects.length)}
                             </span>
                           </div>
                         </div>

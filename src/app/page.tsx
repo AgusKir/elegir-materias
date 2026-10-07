@@ -1526,15 +1526,15 @@ export default function Page() {
                           {val}
                         </button>
                       ))}
+                      {numSubjects !== null && numSubjects >= 7 && (
+                        <div className="lucky-warning">
+                          <span>😱 ¡Mucha suerte!</span>
+                        </div>
+                      )}
                     </div>
                     {numSubjectsError && (
                       <div className="num-subjects-error">
                         <span>⚠️ Seleccioná una cantidad de materias para continuar</span>
-                      </div>
-                    )}
-                    {numSubjects !== null && numSubjects >= 7 && (
-                      <div className="lucky-warning">
-                        <span>😱 ¡Mucha suerte!</span>
                       </div>
                     )}
                   </div>

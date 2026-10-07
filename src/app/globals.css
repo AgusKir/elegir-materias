@@ -872,14 +872,13 @@ body {
 }
 
 .lucky-warning {
-  font-size: 0.825rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #ef4444;
-  margin-top: 4px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: flex-end;
-  text-align: right;
+  margin-left: auto;
+  white-space: nowrap;
   gap: 4px;
 }
 
